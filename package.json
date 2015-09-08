@@ -6,7 +6,11 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": {
+    "name": "",
+    "email": "",
+    "url": ""
+  },
   "license": "ISC",
   "dependencies": {
     "carbono-json-messages": "0.0.1",
