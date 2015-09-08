@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS `access_level` (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` varchar(50) NOT NULL,
   `description` text,
+  `createdAt` DATETIME NOT NULL,
+  `updatedAt` DATETIME NOT NULL,
   PRIMARY KEY (`id`)
 )
 ENGINE = InnoDB
@@ -22,6 +24,8 @@ CREATE TABLE IF NOT EXISTS `account_type` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(20) NOT NULL,
   `description` text,
+  `createdAt` DATETIME NOT NULL,
+  `updatedAt` DATETIME NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `account_name` (`name`)
 )
@@ -39,6 +43,8 @@ CREATE TABLE IF NOT EXISTS `user` (
   `last_login` TIMESTAMP DEFAULT 0 ON UPDATE CURRENT_TIMESTAMP,
   `email` varchar(100) NOT NULL,
   `password` varchar(100) NOT NULL,
+  `createdAt` DATETIME NOT NULL,
+  `updatedAt` DATETIME NOT NULL,
   UNIQUE INDEX `id` (`id` ASC),
   UNIQUE INDEX `email` (`email` ASC),
   PRIMARY KEY (`id`),
@@ -59,6 +65,8 @@ CREATE TABLE IF NOT EXISTS `profile` (
   `last_name` varchar(200),
   `created` datetime DEFAULT NULL,
   `modified` datetime DEFAULT NULL,
+  `createdAt` DATETIME NOT NULL,
+  `updatedAt` DATETIME NOT NULL,
   PRIMARY KEY (`id`),
   KEY `account_id` (`account_id`),
   UNIQUE KEY `profile_code` (`code`),
@@ -75,6 +83,8 @@ CREATE TABLE IF NOT EXISTS `profile_user` (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `user_id` int(11) UNSIGNED,
   `profile_id` int(11) UNSIGNED,
+  `createdAt` DATETIME NOT NULL,
+  `updatedAt` DATETIME NOT NULL,
   PRIMARY KEY (`id`),
   FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE SET NULL,
   FOREIGN KEY (`profile_id`) REFERENCES `profile` (`id`) ON DELETE SET NULL
@@ -94,6 +104,8 @@ CREATE TABLE IF NOT EXISTS `project` (
   `created` datetime DEFAULT NULL,
   `modified` datetime DEFAULT NULL,
   `owner` int(11) UNSIGNED,
+  `createdAt` DATETIME NOT NULL,
+  `updatedAt` DATETIME NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `safe_name_unique` (`safe_name`),
   CONSTRAINT `project_owner` FOREIGN KEY (`owner`) REFERENCES `profile`(`id`) ON DELETE SET NULL
@@ -110,6 +122,8 @@ CREATE TABLE IF NOT EXISTS `project_access` (
   `profile_id` int(11) UNSIGNED,
   `project_id` int(11) UNSIGNED,
   `access_type` int(11) UNSIGNED,
+  `createdAt` DATETIME NOT NULL,
+  `updatedAt` DATETIME NOT NULL,
   PRIMARY KEY (`id`),
   FOREIGN KEY (`profile_id`) REFERENCES `profile`(`id`) ON DELETE SET NULL,
   FOREIGN KEY (`project_id`) REFERENCES `project`(`id`) ON DELETE SET NULL,

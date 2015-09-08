@@ -1,25 +1,37 @@
-// 'use strict';
-// var Sequelize = require('sequelize');
-// var DB = require('db-communication');
-// var sequelize = DB.new().getInstance();
+'use strict';
 
-
-// var User = sequelize.define('user', {
-//   firstName: {
-//     type: Sequelize.STRING,
-//     field: 'first_name' // Will result in an attribute that is firstName when user facing but first_name in the database
-//   },
-//   lastName: {
-//     type: Sequelize.STRING
-//   }
-// }, {
-//   freezeTableName: true // Model tableName will be the same as the model name
-// });
-
-// User.sync({force: true}).then(function () {
-//   // Table created
-//   return User.create({
-//     firstName: 'John',
-//     lastName: 'Hancock'
-//   });
-// });
+module.exports = function (sequelize, DataTypes) {
+    return sequelize.define('user', {
+        id: {
+            type: DataTypes.INTEGER(11),
+            allowNull: false,
+            primaryKey: true,
+            autoIncrement: true,
+        },
+        active: {
+            type: 'BIT(1)',
+            allowNull: false,
+            defaultValue: 'b\'0\'',
+        },
+        modified: {
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
+        lastLogin: {
+            type: DataTypes.DATE,
+            allowNull: false,
+            defaultValue: new Date(),
+            field: 'last_login',
+        },
+        email: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
+        password: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
+    }, {
+        freezeTableName: true,
+    });
+};

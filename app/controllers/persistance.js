@@ -2,10 +2,7 @@
 var CJM = require('carbono-json-messages');
 var uuid = require('node-uuid');
 
-var DB = require('../lib/db-communication');
-
-
-module.exports = function (app) {
+module.exports = function (app, models) {
 
     /**
      * Root test
@@ -30,7 +27,7 @@ module.exports = function (app) {
                        id: uuid.v4(),
                        items: [
                             {
-                                success: "You got it right!"
+                                success: 'You got it right!',
                             },
                            ],
                    }
@@ -42,7 +39,7 @@ module.exports = function (app) {
             res.status(500).end();
         }
     };
-    
+
     /**
      * New user
      * @todo Needs implementation
@@ -62,25 +59,45 @@ module.exports = function (app) {
                        message: 'Missing parameter',
                    };
                 cjm.setError(err);
+                res.json(cjm);
+                res.end();
             } else {
-                
-                var db = new DB();
-                db.connect();
-                // var user  = new User(db.getInstance(), req.body.username, 
-                // req.body.password);
-                cjm.setData(
-                   {
-                       id: uuid.v4(),
-                       items: [
-                            {
-                                success: "You got it right!"
-                            },
-                           ],
-                   }
+                var user = models.User.build({
+                    email: req.body.username,
+                    password: req.body.password,
+                });
+
+                user.save().then(
+                    function () {
+                        cjm.setData(
+                           {
+                               id: uuid.v4(),
+                               items: [
+                                    {
+                                        success: 'You got it right!',
+                                    },
+                                   ],
+                           }
+                        );
+                        res.json(cjm);
+                        res.end();
+                    },
+                    function (err) {
+                        if (err) {
+                            console.log(err);
+                            res.status(400);
+                            var error = {
+                                   code: 400,
+                                   message: err.message,
+                                   errors: err.errors,
+                               };
+                            cjm.setError(error);
+                            res.json(cjm);
+                            res.end();
+                        }
+                    }
                 );
             }
-            res.json(cjm);
-            res.end();
         } catch (e) {
             res.status(500).end();
         }
