@@ -7,13 +7,11 @@ var customException = new CustomException();
 /**
  * Class that handles user profile
  *
- * @Class
+ * @class
  */
 var app = null;
-var UserProfile = function (retapp) {
-    this.app = retapp;
-    app = retapp;
-    return this;
+var UserProfile = function (paramApp) {
+    app = paramApp;
 };
 
 /**
@@ -29,12 +27,12 @@ var UserProfile = function (retapp) {
  * @param {string} data.code - The code of the user
  *
  * @returns {Object} returnMessage - Object with message
- * @returns {Boolean} returnMessage.sucess - Operation success
+ * @returns {boolean} returnMessage.sucess - Operation success
  * @returns {Object} returnMessage.error - Error information
  * @returns {string} returnMessage.table - Table in which the error
  * occurred
  */
-UserProfile.prototype.newAccount = function(data) {
+UserProfile.prototype.newAccount = function (data) {
     var deffered = q.defer();
     // Verifications
     if (data.name.length > 200) {
@@ -65,7 +63,7 @@ UserProfile.prototype.newAccount = function(data) {
             password: data.password,
         })
         .save()
-        .then(function(user) {
+        .then(function (user) {
 
             var Profile = app.get('models').Profile;
             Profile.build({
@@ -74,9 +72,9 @@ UserProfile.prototype.newAccount = function(data) {
                 code: data.code,
             })
             .save()
-            .then(function(profile) {
+            .then(function (profile) {
 
-                profile.addUsers(user).then(function(ret) {
+                profile.addUsers(user).then(function (ret) {
 
                     var returnMessage = {
                         success: true,
@@ -92,7 +90,7 @@ UserProfile.prototype.newAccount = function(data) {
                     deffered.reject(returnMessage);
                 });
             })
-            .catch(function(error) {
+            .catch(function (error) {
                 var returnMessage = {
                     success: false,
                     error: error,
@@ -101,7 +99,7 @@ UserProfile.prototype.newAccount = function(data) {
                 deffered.reject(returnMessage);
             });
         })
-        .catch(function(error) {
+        .catch(function (error) {
             var returnMessage = {
                 success: false,
                 error: error,
@@ -120,7 +118,7 @@ UserProfile.prototype.newAccount = function(data) {
  * @param {string} data.code - The code of the user
  *
  * @returns {Object} returnMessage - The return object
- * @returns {Boolean} returnMessage.sucess - Operation success
+ * @returns {boolean} returnMessage.sucess - Operation success
  * @returns {string} returnMessage.id - The id of the profile
  * @returns {string} returnMessage.name - The name of the user
  * @returns {string} returnMessage.email - The email of the user
@@ -128,7 +126,7 @@ UserProfile.prototype.newAccount = function(data) {
  * @returns {Object} returnMessage.error - Error information
  * @returns {string} returnMessage.table - Table in which the error
  */
-UserProfile.prototype.getUserAccount = function(data) {
+UserProfile.prototype.getUserAccount = function (data) {
     var deffered = q.defer();
 
     // Validation
@@ -142,18 +140,18 @@ UserProfile.prototype.getUserAccount = function(data) {
     .findOne({
         where: {code: data.code},
     })
-    .then(function(profile) {
+    .then(function (profile) {
         profile.getUsers()
-        .then(function(ret) {
+        .then(function (ret) {
             var returnMessage = {
                 success: true,
                 code: profile.get().code,
-                name: profile.get().first_name,
+                name: profile.get().firstName,
                 email: ret[0].dataValues.email,
                 password: ret[0].dataValues.password,
             };
             deffered.resolve(returnMessage);
-        }).catch(function(error) {
+        }).catch(function (error) {
             var returnMessage = {
                 success: false,
                 error: error,
@@ -162,7 +160,7 @@ UserProfile.prototype.getUserAccount = function(data) {
             deffered.reject(returnMessage);
         });
 
-    }).catch(function(error) {
+    }).catch(function (error) {
         var returnMessage = {
             success: false,
             error: error,

@@ -1,8 +1,6 @@
 'use strict';
 
 var CJM = require('carbono-json-messages');
-var uuid = require('node-uuid');
-
 
 /**
  * Helper for handling requests.
@@ -23,13 +21,14 @@ var RequestHelper = function () {
  */
 RequestHelper.prototype.checkMessageStructure = function (message) {
     return message &&
-        message.body &&
-        message.body.id &&
+        message.hasOwnProperty('body') &&
+        message.body.hasOwnProperty('id') &&
+        message.body.hasOwnProperty('apiVersion') &&
+        message.body.hasOwnProperty('data') &&
+        message.body.data.hasOwnProperty('id') &&
+        message.body.data.hasOwnProperty('items') &&
         message.body.apiVersion === '1.0' &&
-        message.body.data &&
-        message.body.data.id &&
-        message.body.data.items &&
-        message.body.data.items[0];
+        message.body.data.items.length > 0;
 };
 
 /**
@@ -41,11 +40,15 @@ RequestHelper.prototype.checkMessageStructure = function (message) {
  */
 RequestHelper.prototype.checkRequiredData = function (data, required) {
     var missing = [];
-    required.forEach(function (prop) {
-        if (!data.hasOwnProperty(prop)) {
-            missing.push(prop);
-        }
-    });
+
+    if (data && required) {
+        required.forEach(function (prop) {
+            if (!data.hasOwnProperty(prop)) {
+                missing.push(prop);
+            }
+        });
+    }
+
     return missing;
 };
 
@@ -58,36 +61,30 @@ RequestHelper.prototype.checkRequiredData = function (data, required) {
  * be the detail to be appended inside 'items[]' array. If it's another
  * htmlCode, it will use the error template, and this param will be included
  * at 'message' attribute.
+ * @return {Object} edited response.
  *
  * @function
  */
 RequestHelper.prototype.createResponse = function (res, htmlCode, message) {
-    res.status(htmlCode);
+    if (htmlCode && typeof htmlCode === 'number') {
+        res.status(htmlCode);
 
-    if (message) {
-        var cjm = new CJM({apiVersion: '1.0'});
-        if (htmlCode === 200) {
-            var data = {
-                id: uuid.v4(),
-                items: [{
-                        profile: {
-                            name: message.name,
-                            email: message.email,
-                            password: message.password,
-                            code: message.code
-                        }
-                    }]
+        if (message) {
+            var cjm = new CJM({apiVersion: '1.0'});
+            if (htmlCode === 200) {
+                cjm.setData(message);
+            } else {
+                cjm.setError({
+                    code: htmlCode,
+                    message: message,
+                });
             }
-            cjm.setData(message);
-        } else {
-            cjm.setError({
-                code: htmlCode,
-                message: message,
-            });
+            res.json(cjm);
         }
-        res.json(cjm);
+        res.end();
     }
-    res.end();
+
+    return res;
 };
 
 module.exports = RequestHelper;
