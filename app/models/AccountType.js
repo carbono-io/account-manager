@@ -3,13 +3,13 @@
 module.exports = function (sequelize, DataTypes) {
     return sequelize.define('account_type', {
         id: {
-            type: DataTypes.INTEGER(11),
+            type: DataTypes.INTEGER(11).UNSIGNED,
             allowNull: false,
             primaryKey: true,
             autoIncrement: true,
         },
         name: {
-            type: DataTypes.STRING,
+            type: DataTypes.STRING(200),
             allowNull: false,
         },
         description: {
@@ -18,5 +18,6 @@ module.exports = function (sequelize, DataTypes) {
         },
     }, {
         freezeTableName: true,
+        underscored: true,
     });
 };

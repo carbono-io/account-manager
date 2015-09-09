@@ -3,39 +3,28 @@
 module.exports = function (sequelize, DataTypes) {
     return sequelize.define('profile', {
         id: {
-            type: DataTypes.INTEGER(11),
+            type: DataTypes.INTEGER(11).UNSIGNED,
             allowNull: false,
             primaryKey: true,
             autoIncrement: true,
         },
         code: {
-            type: DataTypes.STRING,
+            type: DataTypes.STRING(40),
             allowNull: true,
-        },
-        accountId: {
-            type: DataTypes.INTEGER(11),
-            allowNull: true,
-            field: 'account_id',
+            unique: true,
         },
         firstName: {
-            type: DataTypes.STRING,
+            type: DataTypes.STRING(200),
             allowNull: true,
             field: 'first_name',
         },
         lastName: {
-            type: DataTypes.STRING,
+            type: DataTypes.STRING(255),
             allowNull: true,
             field: 'last_name',
-        },
-        created: {
-            type: DataTypes.DATE,
-            allowNull: true,
-        },
-        modified: {
-            type: DataTypes.DATE,
-            allowNull: true,
-        },
+        }
     }, {
         freezeTableName: true,
+        underscored: true,
     });
 };
