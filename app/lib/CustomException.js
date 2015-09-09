@@ -27,4 +27,6 @@ expectedLength, param) {
     this.expectedLength = expectedLength;
     return this.paramName + '(' + this.value + ') expected to have length of '
     + this.expectedLength + ' but has length of ' + this.size;
-}
+};
+
+module.exports = CustomException;

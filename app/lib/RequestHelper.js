@@ -1,6 +1,8 @@
 'use strict';
 
 var CJM = require('carbono-json-messages');
+var uuid = require('node-uuid');
+
 
 /**
  * Helper for handling requests.
@@ -65,6 +67,17 @@ RequestHelper.prototype.createResponse = function (res, htmlCode, message) {
     if (message) {
         var cjm = new CJM({apiVersion: '1.0'});
         if (htmlCode === 200) {
+            var data = {
+                id: uuid.v4(),
+                items: [{
+                        profile: {
+                            name: message.name,
+                            email: message.email,
+                            password: message.password,
+                            code: message.code
+                        }
+                    }]
+            }
             cjm.setData(message);
         } else {
             cjm.setError({

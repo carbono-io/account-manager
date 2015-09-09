@@ -8,10 +8,9 @@
  */
 module.exports = function (app, models) {
 
-    // var RequestHelper = require('../lib/requestHelper');
-    // var userProfile = require('../lib/user_profile');
-    var RequestHelper = app.lib.requestHelper;
-    var userProfile = app.lib.user_profile;
+    var RequestHelper = require('../lib/RequestHelper');
+    var UserProfile = require('../lib/UserProfile');
+    var userProfile = new UserProfile(app);
     var reqHelper = new RequestHelper();
 
     /**
@@ -39,8 +38,16 @@ module.exports = function (app, models) {
                         'Malformed request: ' + prop + ' is required.');
                 });
             } else {
-                userProfile.newAccount(userData);
-                reqHelper.createResponse(res, 200);
+                var promisseNewAccount = userProfile.newAccount(userData);
+                
+                promisseNewAccount
+                    .then(function (data) {
+                        reqHelper.createResponse(res, 200);
+                    }, function (err) {
+                          reqHelper.createResponse(res, 404, 'Malformed request');
+                    });
+                
+                
             }
         } else {
             reqHelper.createResponse(res, 400, 'Malformed request');
@@ -58,9 +65,23 @@ module.exports = function (app, models) {
     this.retrieve = function (req, res) {
         if (req.params && req.params.code) {
             var code = req.params.code;
+            
+            var userData = {
+                code: code
+            };
+            
+            var promisseNewAccount = userProfile.getUserAccount(userData);
+                
+            promisseNewAccount
+                .then(function (data) {
+                    reqHelper.createResponse(res, 200, data);
+                }, function (err) {
+                      reqHelper.createResponse(res, 404, 'Malformed request');
+                });
 
             // TODO: código do vitor aqui
             // createResponse(res, 404, 'profile not found');
+            
             reqHelper.createResponse(res, 200);
         } else {
             reqHelper.createResponse(res, 400,

@@ -8,7 +8,6 @@ app.set('models', require('./app/models'));
 app.use(bodyParser.json());
 
 consign({cwd: 'app'})
-    .include('lib')
     .include('controllers')
     .include('routes')
     .into(app, app.get('models'));
