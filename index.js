@@ -1,8 +1,11 @@
 'use strict';
-var consign   = require('consign');
-var express   = require('express');
-var app       = express();
+var consign    = require('consign');
+var bodyParser = require('body-parser');
+var express    = require('express');
+var app        = express();
 var models = require('./app/models');
+
+app.use(bodyParser.json());
 
 consign({cwd: 'app'})
     .include('controllers')
@@ -14,19 +17,5 @@ var server = app.listen(7888, function () {
     var port = '7888';
     console.log('Imperial listening at http://%s:%s', host, port);
 });
-
-// var user = models.User.create({
-//     email: 'a@a.com',
-//     password: 'password',
-// });
-//
-// var profile = models.Profile.create({
-//     firstName: 'aa',
-//     lastName: 'bb',
-// });
-//
-// user.addProfile(profile).then(function () {
-//     console.log('associação realizada com sucesso!');
-// });
 
 module.exports = server;
