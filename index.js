@@ -1,16 +1,17 @@
 'use strict';
-var consign    = require('consign');
 var bodyParser = require('body-parser');
-var express    = require('express');
-var app        = express();
-var models = require('./app/models');
+var consign   = require('consign');
+var express   = require('express');
+var app       = express();
 
+app.set('models', require('./app/models'));
 app.use(bodyParser.json());
 
 consign({cwd: 'app'})
+    .include('lib')
     .include('controllers')
     .include('routes')
-    .into(app, models);
+    .into(app, app.get('models'));
 
 var server = app.listen(7888, function () {
     var host = '127.0.0.1';

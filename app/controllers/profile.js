@@ -8,7 +8,10 @@
  */
 module.exports = function (app, models) {
 
-    var RequestHelper = require('../lib/requestHelper.js');
+    // var RequestHelper = require('../lib/requestHelper');
+    // var userProfile = require('../lib/user_profile');
+    var RequestHelper = app.lib.requestHelper;
+    var userProfile = app.lib.user_profile;
     var reqHelper = new RequestHelper();
 
     /**
@@ -36,8 +39,7 @@ module.exports = function (app, models) {
                         'Malformed request: ' + prop + ' is required.');
                 });
             } else {
-                // TODO: código do vitor aqui
-
+                userProfile.newAccount(userData);
                 reqHelper.createResponse(res, 200);
             }
         } else {
