@@ -1,6 +1,5 @@
 'use strict';
 var gulp = require('gulp');
-
 var JS_PATH = ['*.js',
     '{lib,app,test}/**/*.{js,json}',
 ];

@@ -1,8 +1,6 @@
 'use strict';
 
 var q = require('q');
-var CustomException = require('./CustomException');
-var customException = new CustomException();
 
 /**
  * Class that handles user profile
@@ -36,23 +34,51 @@ UserProfile.prototype.newAccount = function (data) {
     var deffered = q.defer();
     // Verifications
     if (data.name.length > 200) {
-        throw new customException.StringLengthException('name', 200,
-        data.name);
+        var returnMessage = {
+            success: false,
+            length: true,
+            error: {
+                message: 'Param name must have max length of 200'
+            },
+            table: 'profile',
+        };
+        deffered.reject(returnMessage);
     }
 
     if (data.email.length > 200) {
-        throw new customException.StringLengthException('email', 200,
-        data.email);
+        var returnMessage = {
+            success: false,
+            length: true,
+            error: {
+                message: 'Param email must have max length of 200'
+            },
+            table: 'user',
+        };
+        deffered.reject(returnMessage);
     }
 
     if (data.password.length > 60) {
-        throw new customException.StringLengthException('password', 60,
-        data.password);
+        var returnMessage = {
+            success: false,
+            length: true,
+            error: {
+                message: 'Param password must have max length of 60'
+            },
+            table: 'user',
+        };
+        deffered.reject(returnMessage);
     }
 
     if (data.code.length > 40) {
-        throw new customException.StringLengthException('code', 40,
-        data.password);
+        var returnMessage = {
+            success: false,
+            length: true,
+            error: {
+                message: 'Param code must have max length of 40'
+            },
+            table: 'profile',
+        };
+        deffered.reject(returnMessage);
     }
 
     var User = app.get('models').User;
@@ -131,8 +157,15 @@ UserProfile.prototype.getUserAccount = function (data) {
 
     // Validation
     if (data.code.length > 40) {
-        throw new customException.StringLengthException('code', 40,
-        data.password);
+        var returnMessage = {
+            success: false,
+            length: true,
+            error: {
+                message: 'Param code must have max length of 40'
+            },
+            table: 'profile',
+        };
+        deffered.reject(returnMessage);
     }
 
     var Profile = app.get('models').Profile;

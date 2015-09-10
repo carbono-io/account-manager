@@ -22,10 +22,10 @@ var sequelize = new Sequelize(config.get('dbName'),
             min: 0,
             idle: 10000,
         },
+        logging: false,
 
         storage: process.cwd() + config.get('dbPath'),
     });
-
 // Importing Models
 var models = [
     'AccessLevel',
@@ -96,6 +96,13 @@ models.forEach(function (model) {
 }
 )(module.exports);
 
-// If is necessary force db construction -- sequelize.sync({force:true});
+// If is necessary force db construction
+if (config.get('dbTest')) {
+    sequelize.sync();
+}
+
+// sequelize.prototype.syncDB = function() {
+//     sequelize.sync({force:true});
+// }
 
 module.exports.sequelize = sequelize;
