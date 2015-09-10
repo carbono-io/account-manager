@@ -4,15 +4,17 @@ var consign   = require('consign');
 var express   = require('express');
 var config    = require('config');
 var app       = express();
+var baseApp   = express();
 
 app.set('models', require('./app/models'));
 app.use(bodyParser.json());
+app.use('/account-manager', baseApp);
 
 consign({cwd: 'app'})
     .include('lib')
     .include('controllers')
     .include('routes')
-    .into(app);
+    .into(baseApp);
 
 var port = config.get('port');
 var host = config.get('host');

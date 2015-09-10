@@ -2,7 +2,7 @@
 var request = require('supertest');
 var should = require('chai').should();
 
-var url = 'http://localhost:7888';
+var url = 'http://localhost:7888/account-manager';
 
 var server = request.agent(url);
 
@@ -336,7 +336,7 @@ describe('Routing tests --> ', function () {
 
         it('a username and password are valid', function (done) {
             server
-                .post('/profiles/validate')
+                .post('/login')
                 .send(correctPostMessage({
                         email: 'email1@email.com',
                         password: 'senha123',
@@ -355,7 +355,7 @@ describe('Routing tests --> ', function () {
 
         it('a username and password are not valid', function (done) {
             server
-                .post('/profiles/validate')
+                .post('/login')
                 .send(correctPostMessage({
                         email: 'noexist@email.com',
                         password: 'noexistpass',
@@ -374,7 +374,7 @@ describe('Routing tests --> ', function () {
 
         it('a username is valid', function (done) {
             server
-                .post('/profiles/validate')
+                .post('/userInfo')
                 .send(correctPostMessage({
                         email: 'email1@email.com',
                     }))
@@ -406,7 +406,7 @@ describe('Routing tests --> ', function () {
 
         it('a username is not valid', function (done) {
             server
-                .post('/profiles/validate')
+                .post('/userInfo')
                 .send(correctPostMessage({
                         email: 'invalidmail@email.com',
                     }))
@@ -430,7 +430,7 @@ describe('Routing tests --> ', function () {
 
         it('a username is too big', function (done) {
             server
-                .post('/profiles/validate')
+                .post('/userInfo')
                 .send(correctPostMessage({
                         email: 'oooooooooooooooooooooooooooooooooooooooooooo' +
                         'oooooooooooooooooooooooooooooooooooooooooooooooo' +
@@ -460,7 +460,7 @@ describe('Routing tests --> ', function () {
 
         it('a username is too big again', function (done) {
             server
-                .post('/profiles/validate')
+                .post('/login')
                 .send(correctPostMessage({
                         email: 'oooooooooooooooooooooooooooooooooooooooooooo' +
                         'oooooooooooooooooooooooooooooooooooooooooooooooo' +
@@ -491,7 +491,7 @@ describe('Routing tests --> ', function () {
 
         it('a password is too big', function (done) {
             server
-                .post('/profiles/validate')
+                .post('/login')
                 .send(correctPostMessage({
                         email: 'email@eee.com',
                         password: 'ooooooooooooooooooooooooooooooooooooooooo' +
@@ -522,7 +522,7 @@ describe('Routing tests --> ', function () {
 
         it('there are no parameters', function (done) {
             server
-                .post('/profiles/validate')
+                .post('/login')
                 .send(correctPostMessage({}))
                 .expect(400)
                 .end(function (err, res) {
