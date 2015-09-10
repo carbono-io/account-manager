@@ -1,6 +1,6 @@
 'use strict';
 var request = require('supertest');
-var should = require('should');
+var should = require('chai').should();
 
 var url = 'http://localhost:7888';
 
@@ -70,6 +70,26 @@ describe('Routing tests --> ', function () {
                     }
                     should.not.exist(err);
                     res.status.should.equal(200);
+                    done();
+                });
+        });
+
+        it('cannot create a new profile without name', function (done) {
+            server
+                .post('/profiles')
+                .send(correctPostMessage({
+                        code: '00122eee',
+                        email: 'email1@email.com',
+                        password: 'senha123',
+                    }))
+                .expect(400)
+                .end(function (err, res) {
+
+                    if (err) {
+                        return done(err);
+                    }
+                    should.not.exist(err);
+                    res.status.should.equal(400);
                     done();
                 });
         });
