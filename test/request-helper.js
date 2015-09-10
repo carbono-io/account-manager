@@ -1,6 +1,6 @@
 'use strict';
 var RequestHelper = require('../app/lib/RequestHelper.js');
-var should = require('should');
+var should = require('chai').should();
 
 describe('RequestHelper', function () {
 
