@@ -22,7 +22,7 @@ var sequelize = new Sequelize(config.get('dbName'),
             min: 0,
             idle: 10000,
         },
-        logging: false,
+        // logging: false,
 
         storage: process.cwd() + config.get('dbPath'),
     });

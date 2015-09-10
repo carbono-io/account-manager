@@ -205,4 +205,140 @@ UserProfile.prototype.getUserAccount = function (data) {
     return deffered.promise;
 };
 
+/**
+ * Checks if there is a user with the sent username
+ *
+ * @function
+ * @param {Object} data - Object containing necessary data
+ * @param {string} data.email - The email of the user
+ *
+ * @returns {Object} returnMessage - The return object
+ * @returns {boolean} returnMessage.sucess - Operation success
+ * @returns {string} returnMessage.id - The id of the profile
+ * @returns {string} returnMessage.name - The name of the user
+ * @returns {string} returnMessage.email - The email of the user
+ * @returns {Object} returnMessage.error - Error information
+ * @returns {string} returnMessage.table - Table in which the error
+ */
+UserProfile.prototype.getUserByEmail = function (data) {
+    var deffered = q.defer();
+
+    // Validation
+    if (data.email.length > 200) {
+        var returnMessage = {
+            success: false,
+            length: true,
+            error: {
+                message: 'Param email must have max length of 40',
+            },
+            table: 'user',
+        };
+        deffered.reject(returnMessage);
+    }
+    var User = app.get('models').User;
+    User
+    .findOne({
+        where: {email: data.email},
+    })
+    .then(function (user) {
+        user.getProfiles()
+        .then(function (profile) {
+            var returnMessage = {
+                success: true,
+                code: profile[0].dataValues.code,
+                name: profile[0].dataValues.firstName,
+                email: data.email,
+            };
+            deffered.resolve(returnMessage);
+        }).catch(function (error) {
+            var returnMessage = {
+                success: false,
+                error: error,
+                table: 'profile',
+            };
+            deffered.reject(returnMessage);
+        });
+        
+    }).catch(function (error) {
+        var returnMessage = {
+            success: false,
+            error: error,
+            table: 'user',
+        };
+        deffered.reject(returnMessage);
+    });
+    return deffered.promise;
+};
+
+/**
+ * Checks if exists a user with email and password
+ *
+ * @function
+ * @param {Object} data - Object containing necessary data
+ * @param {string} data.email - The email of the user
+ * @param {string} data.password - The password of the user
+ *
+ * @returns {Object} returnMessage - The return object
+ * @returns {boolean} returnMessage.sucess - Operation success
+ * @returns {Object} returnMessage.error - Error information
+ * @returns {string} returnMessage.table - Table in which the error
+ */
+UserProfile.prototype.validatePassword = function (data) {
+    var deffered = q.defer();
+
+    // Validation
+    if (data.email.length > 200) {
+        var returnMessage = {
+            success: false,
+            length: true,
+            error: {
+                message: 'Param email must have max length of 40',
+            },
+            table: 'user',
+        };
+        deffered.reject(returnMessage);
+    }
+    if (data.password.length > 60) {
+        returnMessage = {
+            success: false,
+            length: true,
+            error: {
+                message: 'Param password must have max length of 60',
+            },
+            table: 'user',
+        };
+        deffered.reject(returnMessage);
+    }
+    var User = app.get('models').User;
+    User
+    .findOne({
+        where: {email: data.email, password: data.password},
+    })
+    .then(function (user) {
+        var returnMessage = {};
+        if(user != null) {
+            returnMessage = {
+                success: true,
+            };
+            deffered.resolve(returnMessage);
+        } else {
+            returnMessage = {
+                success: false,
+                error: "User not found",
+                table: 'user',
+            };
+            deffered.reject(returnMessage);
+        }
+        
+    }).catch(function (error) {
+        var returnMessage = {
+            success: false,
+            error: error,
+            table: 'user',
+        };
+        deffered.reject(returnMessage);
+    });
+    return deffered.promise;
+};
+
 module.exports = UserProfile;

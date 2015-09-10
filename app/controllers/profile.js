@@ -99,6 +99,66 @@ module.exports = function (app) {
                 'Malformed request: id is required.');
         }
     };
+    
+    /**
+     * Returns an profile user based on a ID.
+     *
+     * @param {Object} req - Request object
+     * @param {Object} res - Response object
+     *
+     * curl example: curl localhost:7888/profiles/123456 --verbose
+     */
+    this.validate = function (req, res) {
+        if (reqHelper.checkMessageStructure(req)) {
+            var userData = req.body.data.items[0];
+            if (userData.hasOwnProperty('email')) {
+                if (userData.hasOwnProperty('password')) {
+                    // ValidatePassword
+                    userProfile.validatePassword(userData).then(
+                    function (result) {
+                        reqHelper.createResponse(res, 200);
+                    },
+                    function () {
+                        reqHelper.createResponse(res, 404,
+                            'invalid email or password');
+                    }
+                );
+                } else {
+                    // FindUserByEmail
+                    userProfile.getUserByEmail(userData).then(
+                        function (result) {
+                            var data = {
+                                id: uuid.v4(),
+                                items: [
+                                    {
+                                        profile: {
+                                            code: result.code,
+                                            name: result.name,
+                                            email: result.email,
+                                            password: result.password,
+                                        },
+                                    },
+                                ],
+                            };
+                            reqHelper.createResponse(res, 200, data);
+                        },
+                        function (err) {
+                            if (err.length) {
+                                reqHelper.createResponse(res, 400,
+                                err.error.message);
+                            } else {
+                                reqHelper.createResponse(res, 404,
+                                'user not found');
+                            }
+                        }
+                    );
+                }
+                
+            }
+        } else {
+            reqHelper.createResponse(res, 400, 'Malformed request');
+        }
+    };
 
     return this;
 };
