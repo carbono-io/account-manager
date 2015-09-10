@@ -7,7 +7,7 @@ module.exports = function (sequelize, DataTypes) {
             allowNull: false,
             primaryKey: true,
             autoIncrement: true,
-        }
+        },
     }, {
         freezeTableName: true,
         underscored: true,

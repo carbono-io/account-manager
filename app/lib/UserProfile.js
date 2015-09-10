@@ -32,13 +32,14 @@ var UserProfile = function (paramApp) {
  */
 UserProfile.prototype.newAccount = function (data) {
     var deffered = q.defer();
+    var returnMessage = null;
     // Verifications
     if (data.name.length > 200) {
-        var returnMessage = {
+        returnMessage = {
             success: false,
             length: true,
             error: {
-                message: 'Param name must have max length of 200'
+                message: 'Param name must have max length of 200',
             },
             table: 'profile',
         };
@@ -46,11 +47,11 @@ UserProfile.prototype.newAccount = function (data) {
     }
 
     if (data.email.length > 200) {
-        var returnMessage = {
+        returnMessage = {
             success: false,
             length: true,
             error: {
-                message: 'Param email must have max length of 200'
+                message: 'Param email must have max length of 200',
             },
             table: 'user',
         };
@@ -58,11 +59,11 @@ UserProfile.prototype.newAccount = function (data) {
     }
 
     if (data.password.length > 60) {
-        var returnMessage = {
+        returnMessage = {
             success: false,
             length: true,
             error: {
-                message: 'Param password must have max length of 60'
+                message: 'Param password must have max length of 60',
             },
             table: 'user',
         };
@@ -70,11 +71,11 @@ UserProfile.prototype.newAccount = function (data) {
     }
 
     if (data.code.length > 40) {
-        var returnMessage = {
+        returnMessage = {
             success: false,
             length: true,
             error: {
-                message: 'Param code must have max length of 40'
+                message: 'Param code must have max length of 40',
             },
             table: 'profile',
         };
@@ -100,14 +101,14 @@ UserProfile.prototype.newAccount = function (data) {
             .save()
             .then(function (profile) {
 
-                profile.addUsers(user).then(function (ret) {
+                profile.addUsers(user).then(function () {
 
                     var returnMessage = {
                         success: true,
                     };
                     deffered.resolve(returnMessage);
                 })
-                .catch(function(error) {
+                .catch(function (error) {
                     var returnMessage = {
                         success: false,
                         error: error,
@@ -161,7 +162,7 @@ UserProfile.prototype.getUserAccount = function (data) {
             success: false,
             length: true,
             error: {
-                message: 'Param code must have max length of 40'
+                message: 'Param code must have max length of 40',
             },
             table: 'profile',
         };

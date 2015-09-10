@@ -50,12 +50,12 @@ models.forEach(function (model) {
 
     // Creates the profile_user table
     m.Profile.belongsToMany(m.User, {
-        through: 'profile_user'
+        through: 'profile_user',
     });
 
     // Creates the profile_user table
     m.User.belongsToMany(m.Profile, {
-        through: 'profile_user'
+        through: 'profile_user',
     });
 
     // Foreign key of Profile
@@ -72,15 +72,15 @@ models.forEach(function (model) {
 
     // Creates the association of project_acess
     m.Profile.belongsToMany(m.Project, {
-        through: 'project_access'
+        through: 'project_access',
     });
 
     m.Profile.belongsToMany(m.AccessLevel, {
-        through: 'project_access'
+        through: 'project_access',
     });
 
     m.Project.belongsToMany(m.Profile, {
-        through: 'project_access'
+        through: 'project_access',
     });
 
     m.AccessLevel.belongsToMany(m.Profile, {

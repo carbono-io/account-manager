@@ -22,17 +22,17 @@ function defaultErrorResponse(res) {
     res.error.should.have.property('message');
 }
 
-function correctPostMessage (info) {
+function correctPostMessage(info) {
     return {
-                apiVersion: '1.0',
-                id: '12345',
-                data: {
-                    id: '98765',
-                    items: [
-                        info,
-                    ],
-                },
-            };
+            apiVersion: '1.0',
+            id: '12345',
+            data: {
+                id: '98765',
+                items: [
+                    info,
+                ],
+            },
+        };
 }
 
 var serverObj;
@@ -41,21 +41,18 @@ describe('Routing tests --> ', function () {
     before(function () {
         // Starting Server
         serverObj = require('../');
-        
     });
 
     after(function () {
         // Closing Server
         var sequelize = require('../app/models/index.js');
-        sequelize.sequelize.sync({force:true})
-        .then(function (value) {
+        var promise = sequelize.sequelize.sync({force: true});
+        promise.then(function () {
             serverObj.close();
         });
-        
     });
 
     describe('Basic routes - This test should work when:', function () {
-
         it('can create a new profile', function (done) {
             server
                 .post('/profiles')
@@ -73,12 +70,10 @@ describe('Routing tests --> ', function () {
                     }
                     should.not.exist(err);
                     res.status.should.equal(200);
-                    
                     done();
-                    
                 });
         });
-        
+
         it('cannot create a new profile with the same code', function (done) {
             server
                 .post('/profiles')
@@ -101,13 +96,9 @@ describe('Routing tests --> ', function () {
                     } catch (e) {
                         return done(e);
                     }
-                    
-                    
                     done();
-                    
                 });
         });
-        
         it('cannot create a new profile with the same email', function (done) {
             server
                 .post('/profiles')
@@ -130,17 +121,18 @@ describe('Routing tests --> ', function () {
                     } catch (e) {
                         return done(e);
                     }
-                    
                     done();
-                    
                 });
         });
-        
         it('cannot create a new profile with name too big', function (done) {
             server
                 .post('/profiles')
                 .send(correctPostMessage({
-                        name: 'name example error nanme name example error nanme name example error nanme name example error nanme name example error nanme name example error nanme name example error nanme name example error nanme ashjash',
+                        name: 'name example error nanme name example error' +
+                        ' nanme name example error nanme name example error' +
+                        ' nanme name example error nanme name example error' +
+                        ' nanme name example error nanme name example error' +
+                        ' nanme ashjash',
                         code: 'other',
                         email: 'another@email.com',
                         password: 'senha123',
@@ -158,18 +150,17 @@ describe('Routing tests --> ', function () {
                     } catch (e) {
                         return done(e);
                     }
-                    
                     done();
-                    
                 });
         });
-        
+
         it('cannot create a new profile with code too big', function (done) {
             server
                 .post('/profiles')
                 .send(correctPostMessage({
                         name: 'name',
-                        code: 'oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo',
+                        code: 'ooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooo00000ooooooooooooo',
                         email: 'another@email.com',
                         password: 'senha123',
                     }))
@@ -186,19 +177,23 @@ describe('Routing tests --> ', function () {
                     } catch (e) {
                         return done(e);
                     }
-                    
                     done();
-                    
                 });
         });
-        
+
         it('cannot create a new profile with email too big', function (done) {
             server
                 .post('/profiles')
                 .send(correctPostMessage({
                         name: 'name',
                         code: 'oooo',
-                        email: 'oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo@email.com',
+                        email: 'oooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'o@email.com',
                         password: 'senha123',
                     }))
                 .expect(400)
@@ -214,20 +209,21 @@ describe('Routing tests --> ', function () {
                     } catch (e) {
                         return done(e);
                     }
-                    
                     done();
-                    
                 });
         });
-        
-        it('cannot create a new profile with password too big', function (done) {
+
+        it('cannot create a new profile with password too big',
+        function (done) {
             server
                 .post('/profiles')
                 .send(correctPostMessage({
                         name: 'name',
                         code: 'oooo',
                         email: 'email@email.com',
-                        password: 'seoooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooonha123',
+                        password: 'seooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooonha123',
                     }))
                 .expect(400)
                 .end(function (err, res) {
@@ -242,12 +238,10 @@ describe('Routing tests --> ', function () {
                     } catch (e) {
                         return done(e);
                     }
-                    
                     done();
-                    
                 });
         });
-        
+
         it('can retrieve an existing profile', function (done) {
             server
                 .get('/profiles/' + '00122eee')
@@ -261,27 +255,27 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(200);
                     try {
                         var jsonResponse = JSON.parse(res.body);
-                        
                         defaultResponse(jsonResponse);
-                        
-                        jsonResponse.data.items[0].should.have.property('profile');
-                        jsonResponse.data.items[0].profile.should.have.property('code');
-                        jsonResponse.data.items[0].profile.should.have.property('email');
-                        jsonResponse.data.items[0].profile.should.have.property('name');
-                        jsonResponse.data.items[0].profile.should.have.property('password');
+                        jsonResponse.data.items[0].
+                        should.have.property('profile');
+                        jsonResponse.data.items[0].
+                        profile.should.have.property('code');
+                        jsonResponse.data.items[0].
+                        profile.should.have.property('email');
+                        jsonResponse.data.items[0].
+                        profile.should.have.property('name');
+                        jsonResponse.data.items[0].
+                        profile.should.have.property('password');
                     } catch (e) {
                         return done(e);
                     }
-                    
                     done();
-                    
                 });
         });
-        
+
         it('cannot retrieve a non-existing profile', function (done) {
             server
                 .get('/profiles/' + 'fakeCode')
-                
                 .expect(404)
                 .end(function (err, res) {
                     if (err) {
@@ -295,16 +289,14 @@ describe('Routing tests --> ', function () {
                     } catch (e) {
                         return done(e);
                     }
-                    
                     done();
-                    
                 });
         });
-        
+
         it('code is too big (> 40)', function (done) {
             server
-                .get('/profiles/' + 'oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo')
-                
+                .get('/profiles/' + 'oooooooooooooooooooooooooooooooooooo' +
+                'oooooooooooooooooooooooo')
                 .expect(400)
                 .end(function (err, res) {
                     if (err) {
@@ -318,13 +310,8 @@ describe('Routing tests --> ', function () {
                     } catch (e) {
                         return done(e);
                     }
-                    
                     done();
-                    
                 });
         });
-        
     });
-
-
 });

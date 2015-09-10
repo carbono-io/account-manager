@@ -87,12 +87,11 @@ module.exports = function (app) {
                     reqHelper.createResponse(res, 200, data);
                 },
                 function (err) {
-                    if(err.length) {
+                    if (err.length) {
                         reqHelper.createResponse(res, 400, err.error.message);
                     } else {
                         reqHelper.createResponse(res, 404, 'profile not found');
                     }
-                    
                 }
             );
         } else {

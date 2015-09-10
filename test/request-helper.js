@@ -2,7 +2,6 @@
 var RequestHelper = require('../app/lib/RequestHelper.js');
 var should = require('should');
 
-
 describe('RequestHelper', function () {
 
     beforeEach(function () {

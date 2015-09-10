@@ -16,7 +16,7 @@ module.exports = function (sequelize, DataTypes) {
             type: DataTypes.STRING(80),
             allowNull: true,
             field: 'safe_name',
-            unique: true
+            unique: true,
         },
         description: {
             type: DataTypes.TEXT,

@@ -22,7 +22,7 @@ module.exports = function (sequelize, DataTypes) {
             type: DataTypes.STRING(255),
             allowNull: true,
             field: 'last_name',
-        }
+        },
     }, {
         freezeTableName: true,
         underscored: true,
