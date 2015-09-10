@@ -96,13 +96,4 @@ models.forEach(function (model) {
 }
 )(module.exports);
 
-// If is necessary force db construction
-if (config.get('dbTest')) {
-    sequelize.sync();
-}
-
-// sequelize.prototype.syncDB = function() {
-//     sequelize.sync({force:true});
-// }
-
 module.exports.sequelize = sequelize;
