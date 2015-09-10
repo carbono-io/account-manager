@@ -258,7 +258,6 @@ UserProfile.prototype.getUserByEmail = function (data) {
             };
             deffered.reject(returnMessage);
         });
-        
     }).catch(function (error) {
         var returnMessage = {
             success: false,
@@ -316,7 +315,7 @@ UserProfile.prototype.validatePassword = function (data) {
     })
     .then(function (user) {
         var returnMessage = {};
-        if(user != null) {
+        if (user !== null) {
             returnMessage = {
                 success: true,
             };
@@ -324,12 +323,12 @@ UserProfile.prototype.validatePassword = function (data) {
         } else {
             returnMessage = {
                 success: false,
-                error: "User not found",
+                error: 'User not found',
                 table: 'user',
             };
             deffered.reject(returnMessage);
         }
-        
+
     }).catch(function (error) {
         var returnMessage = {
             success: false,

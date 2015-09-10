@@ -99,7 +99,7 @@ module.exports = function (app) {
                 'Malformed request: id is required.');
         }
     };
-    
+
     /**
      * Returns an profile user based on a ID.
      *
@@ -115,12 +115,17 @@ module.exports = function (app) {
                 if (userData.hasOwnProperty('password')) {
                     // ValidatePassword
                     userProfile.validatePassword(userData).then(
-                    function (result) {
+                    function () {
                         reqHelper.createResponse(res, 200);
                     },
-                    function () {
-                        reqHelper.createResponse(res, 404,
+                    function (err) {
+                        if (err.length) {
+                            reqHelper.createResponse(res, 400,
+                            err.error.message);
+                        } else {
+                            reqHelper.createResponse(res, 404,
                             'invalid email or password');
+                        }
                     }
                 );
                 } else {
@@ -153,7 +158,9 @@ module.exports = function (app) {
                         }
                     );
                 }
-                
+            } else {
+                reqHelper.createResponse(res, 400,
+                'Malformed request - Must have email or password');
             }
         } else {
             reqHelper.createResponse(res, 400, 'Malformed request');

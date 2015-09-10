@@ -333,5 +333,213 @@ describe('Routing tests --> ', function () {
                     done();
                 });
         });
+
+        it('a username and password are valid', function (done) {
+            server
+                .post('/profiles/validate')
+                .send(correctPostMessage({
+                        email: 'email1@email.com',
+                        password: 'senha123',
+                    }))
+                .expect(200)
+                .end(function (err, res) {
+
+                    if (err) {
+                        return done(err);
+                    }
+                    should.not.exist(err);
+                    res.status.should.equal(200);
+                    done();
+                });
+        });
+
+        it('a username and password are not valid', function (done) {
+            server
+                .post('/profiles/validate')
+                .send(correctPostMessage({
+                        email: 'noexist@email.com',
+                        password: 'noexistpass',
+                    }))
+                .expect(404)
+                .end(function (err, res) {
+
+                    if (err) {
+                        return done(err);
+                    }
+                    should.not.exist(err);
+                    res.status.should.equal(404);
+                    done();
+                });
+        });
+
+        it('a username is valid', function (done) {
+            server
+                .post('/profiles/validate')
+                .send(correctPostMessage({
+                        email: 'email1@email.com',
+                    }))
+                .expect(200)
+                .end(function (err, res) {
+
+                    if (err) {
+                        return done(err);
+                    }
+                    should.not.exist(err);
+                    res.status.should.equal(200);
+                    try {
+                        var jsonResponse = JSON.parse(res.body);
+                        defaultResponse(jsonResponse);
+                        jsonResponse.data.items[0].
+                        should.have.property('profile');
+                        jsonResponse.data.items[0].
+                        profile.should.have.property('code');
+                        jsonResponse.data.items[0].
+                        profile.should.have.property('email');
+                        jsonResponse.data.items[0].
+                        profile.should.have.property('name');
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('a username is not valid', function (done) {
+            server
+                .post('/profiles/validate')
+                .send(correctPostMessage({
+                        email: 'invalidmail@email.com',
+                    }))
+                .expect(404)
+                .end(function (err, res) {
+
+                    if (err) {
+                        return done(err);
+                    }
+                    should.not.exist(err);
+                    res.status.should.equal(404);
+                    try {
+                        var jsonResponse = JSON.parse(res.body);
+                        defaultErrorResponse(jsonResponse);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('a username is too big', function (done) {
+            server
+                .post('/profiles/validate')
+                .send(correctPostMessage({
+                        email: 'oooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'o@email.com',
+                    }))
+                .expect(400)
+                .end(function (err, res) {
+
+                    if (err) {
+                        return done(err);
+                    }
+                    should.not.exist(err);
+                    res.status.should.equal(400);
+                    try {
+                        var jsonResponse = JSON.parse(res.body);
+                        defaultErrorResponse(jsonResponse);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('a username is too big again', function (done) {
+            server
+                .post('/profiles/validate')
+                .send(correctPostMessage({
+                        email: 'oooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'o@email.com',
+                        password: 'dummy',
+                    }))
+                .expect(400)
+                .end(function (err, res) {
+
+                    if (err) {
+                        return done(err);
+                    }
+                    should.not.exist(err);
+                    res.status.should.equal(400);
+                    try {
+                        var jsonResponse = JSON.parse(res.body);
+                        defaultErrorResponse(jsonResponse);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('a password is too big', function (done) {
+            server
+                .post('/profiles/validate')
+                .send(correctPostMessage({
+                        email: 'email@eee.com',
+                        password: 'ooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooo@email.com',
+                    }))
+                .expect(400)
+                .end(function (err, res) {
+
+                    if (err) {
+                        return done(err);
+                    }
+                    should.not.exist(err);
+                    res.status.should.equal(400);
+                    try {
+                        var jsonResponse = JSON.parse(res.body);
+                        defaultErrorResponse(jsonResponse);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('there are no parameters', function (done) {
+            server
+                .post('/profiles/validate')
+                .send(correctPostMessage({}))
+                .expect(400)
+                .end(function (err, res) {
+
+                    if (err) {
+                        return done(err);
+                    }
+                    should.not.exist(err);
+                    res.status.should.equal(400);
+                    try {
+                        var jsonResponse = JSON.parse(res.body);
+                        defaultErrorResponse(jsonResponse);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
     });
 });
