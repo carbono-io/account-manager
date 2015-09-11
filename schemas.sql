@@ -3,10 +3,10 @@
 -- Host: 0.0.0.0    Database: carbono
 -- ------------------------------------------------------
 -- Server version	5.5.41-0ubuntu0.14.04.1
+
 DROP SCHEMA IF EXISTS `carbono` ;
 CREATE SCHEMA IF NOT EXISTS `carbono` DEFAULT CHARACTER SET utf8 ;
 USE `carbono`;
-
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -32,8 +32,11 @@ CREATE TABLE `access_level` (
   `description` text,
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT = 0 DEFAULT CHARSET=utf8;
+  `access_type` int(11) unsigned DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `access_type` (`access_type`),
+  CONSTRAINT `access_level_ibfk_1` FOREIGN KEY (`access_type`) REFERENCES `profile` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -59,7 +62,7 @@ CREATE TABLE `account_type` (
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT = 0 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -90,7 +93,7 @@ CREATE TABLE `profile` (
   UNIQUE KEY `code` (`code`),
   KEY `account_id` (`account_id`),
   CONSTRAINT `profile_ibfk_1` FOREIGN KEY (`account_id`) REFERENCES `account_type` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT = 0 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -120,7 +123,7 @@ CREATE TABLE `profile_user` (
   KEY `user_id` (`user_id`),
   CONSTRAINT `profile_user_ibfk_1` FOREIGN KEY (`profile_id`) REFERENCES `profile` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `profile_user_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT = 0 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -151,7 +154,7 @@ CREATE TABLE `project` (
   UNIQUE KEY `safe_name` (`safe_name`),
   KEY `owner` (`owner`),
   CONSTRAINT `project_ibfk_1` FOREIGN KEY (`owner`) REFERENCES `profile` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT = 0 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -178,8 +181,7 @@ CREATE TABLE `project_access` (
   `project_id` int(11) unsigned DEFAULT NULL,
   `access_type` int(11) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `project_access_access_type_profile_id_unique` (`profile_id`),
-  UNIQUE KEY `project_access_access_type_project_id_unique` (`project_id`,`access_type`),
+  UNIQUE KEY `project_access_access_type_project_id_profile_id_unique` (`project_id`,`access_type`,`profile_id`),
   KEY `access_type` (`access_type`),
   CONSTRAINT `project_access_ibfk_1` FOREIGN KEY (`profile_id`) REFERENCES `profile` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `project_access_ibfk_2` FOREIGN KEY (`project_id`) REFERENCES `project` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -206,14 +208,14 @@ DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `active` tinyint(1) NOT NULL DEFAULT '0',
-  `last_login` datetime NOT NULL DEFAULT '2015-09-09 14:49:46',
+  `last_login` datetime NOT NULL DEFAULT '2015-09-11 14:48:32',
   `email` varchar(200) NOT NULL,
-  `password` varchar(30) NOT NULL,
+  `password` varchar(60) NOT NULL,
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT = 0 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -234,4 +236,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2015-09-09 14:49:50
+-- Dump completed on 2015-09-11 14:48:47

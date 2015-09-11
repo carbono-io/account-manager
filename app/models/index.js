@@ -22,7 +22,7 @@ var sequelize = new Sequelize(config.get('dbName'),
             min: 0,
             idle: 10000,
         },
-        logging: false,
+        // logging: false,
 
         storage: process.cwd() + config.get('dbPath'),
     });
@@ -71,29 +71,23 @@ models.forEach(function (model) {
     });
 
     // Creates the association of project_acess
-    m.Profile.belongsToMany(m.Project, {
-        through: 'project_access',
-    });
 
-    m.Profile.belongsToMany(m.AccessLevel, {
-        through: 'project_access',
-    });
-
-    m.Project.belongsToMany(m.Profile, {
-        through: 'project_access',
-    });
-
-    m.AccessLevel.belongsToMany(m.Profile, {
+    m.AccessLevel.belongsTo(m.Profile, {
+        constraint: false,
         through: 'project_access',
         foreignKey: 'access_type',
+        unique: false,
     });
 
-    m.AccessLevel.belongsToMany(m.Project, {
+    m.AccessLevel.belongsTo(m.Project, {
+        constraint: false,
         through: 'project_access',
         foreignKey: 'access_type',
+        unique: false,
     });
 
 }
 )(module.exports);
 
+// sequelize.sync({force:true})
 module.exports.sequelize = sequelize;
