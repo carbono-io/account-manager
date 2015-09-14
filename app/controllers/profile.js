@@ -33,10 +33,12 @@ module.exports = function (app) {
                     userData, ['code', 'name', 'email', 'password']);
 
             if (missingProperties.length) {
+                var errMessage = '';
                 missingProperties.forEach(function (prop) {
-                    reqHelper.createResponse(res, 400,
-                        'Malformed request: ' + prop + ' is required.');
+                    errMessage += 'Malformed request: ' + prop + ' is required.\n';
+                    
                 });
+                reqHelper.createResponse(res, 400, errMessage);
             } else {
                 try {
                     userProfile.newAccount(userData).then(

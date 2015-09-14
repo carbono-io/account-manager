@@ -8,7 +8,6 @@ var q = require('q');
  * @class
  */
 var app = null;
-var accessLevel = null;
 var Project = function (paramApp) {
     app = paramApp;
 };
@@ -68,15 +67,125 @@ Project.prototype.newProject = function (data) {
         deffered.reject(returnMessage);
     }
     // Gets a accessLevel for dev or creates if not exists
+    this.devAccessLevel().then(
+        function (accessLevel) {
+            // Finds the profile that will own the project
+            var Profile = app.get('models').Profile;
+            Profile
+                .findOne({
+                    where: {code: data.owner},
+                })
+                .then(function (profile) {
+                    if (profile !== null) {
+                        // Try to create the project
+                        var Project = app.get('models').Project;
+                         Project
+                            .build({
+                                name: data.name,
+                                safeName: data.safeName,
+                                owner: profile.id,
+                            })
+                            .save()
+                            .then(function (project) {
+                                if (project !== null) {
+                                    // If the project is created, create the access
+                                    var ProjectAccess = app.get('models').ProjectAccess;
+                                    ProjectAccess
+                                    .build({
+                                        profile_id: project.owner,
+                                        project_id: project.id,
+                                        access_type: accessLevel.id
+                                    })
+                                    .save()
+                                    .then(function (accessProj) {
+                                        if (accessProj !== null) {
+                                            // Accept
+                                            var returnMessage = {
+                                                success: true,
+                                            };
+                                            deffered.resolve(returnMessage);
+                                        } else {
+                                            returnMessage = {
+                                                success: false,
+                                                error: 'Could not set project access',
+                                                table: 'project_access',
+                                            };
+                                            deffered.reject(returnMessage);
+                                        }
+                                    })
+                                    .catch(function (error) {
+                                        var returnMessage = {
+                                            success: false,
+                                            error: error,
+                                            table: 'project_access',
+                                        };
+                                        deffered.reject(returnMessage);
+                                    });
+                                } else {
+                                    var returnMessage = {
+                                        success: false,
+                                        error: 'Could not create project',
+                                        table: 'project',
+                                    };
+                                    deffered.reject(returnMessage);
+                                }
+                            })
+                            .catch(function (error) {
+                                var returnMessage = {
+                                    success: false,
+                                    error: error,
+                                    table: 'project',
+                                };
+                                deffered.reject(returnMessage);
+                            });
+                    } else {
+                        var returnMessage = {
+                            success: false,
+                            notFound: true,
+                            error: 'Could not find owner',
+                            table: 'profile',
+                        };
+                        deffered.reject(returnMessage);
+                    }
+                })
+                .catch(function (error) {
+                    var returnMessage = {
+                        success: false,
+                        error: error,
+                        table: 'profile',
+                    };
+                    deffered.reject(returnMessage);
+                });
+        },
+        function (error) {
+            deffered.reject(error);
+        });
+
+    return deffered.promise;
+};
+
+/**
+ * Method that creates or retrieves the AccessLevel for Dev
+ *
+ * @function
+ *
+ * @returns {Object} newAccess - AccessLevel instance
+ * @returns {Object} returnMessage - Object with message
+ * @returns {Object} returnMessage.error - Error information
+ * @returns {string} returnMessage.table - Table in which the error
+ * occurred
+ */
+Project.prototype.devAccessLevel = function () {
+    var deffered = q.defer();
     var AccessLevel = app.get('models').AccessLevel;
     AccessLevel
         .findOne({
             where: {name: 'dev'}
         })
         .then(function (access) {
-            if (access != null) {
+            if (access !== null) {
                 // Got level
-                accessLevel = access;
+                deffered.resolve(access);
             } else {
                 var AccessLevel = app.get('models').AccessLevel;
                 AccessLevel
@@ -86,7 +195,16 @@ Project.prototype.newProject = function (data) {
                     .save()
                     .then(function (newAccess) {
                         // Got access level
-                        accessLevel = newAccess;
+                        if (newAccess !== null) {
+                            deffered.resolve(newAccess);
+                        } else {
+                            var returnMessage = {
+                                success: false,
+                                error: 'Could not create AccessLevel',
+                                table: 'access_level',
+                            };
+                            deffered.reject(returnMessage);
+                        }
                     })
                     .catch(function (error) {
                         var returnMessage = {
@@ -103,93 +221,6 @@ Project.prototype.newProject = function (data) {
                 success: false,
                 error: error,
                 table: 'access_level',
-            };
-            deffered.reject(returnMessage);
-        });
-    // Finds the profile that will own the project
-    var Profile = app.get('models').Profile;
-    Profile
-        .findOne({
-            where: {code: data.owner},
-        })
-        .then(function (profile) {
-            if (profile !== null) {
-                // Try to create the project
-                var Project = app.get('models').Project;
-                 Project
-                    .build({
-                        name: data.name,
-                        safeName: data.safeName,
-                        owner: profile.id,
-                    })
-                    .save()
-                    .then(function (project) {
-                        if (project !== null) {
-                            // If the project is created, create the access
-                            var ProjectAccess = app.get('models').ProjectAccess;
-                            ProjectAccess
-                            .build({
-                                profile_id: project.owner,
-                                project_id: project.id,
-                                access_type: accessLevel.id
-                            })
-                            .save()
-                            .then(function (accessProj) {
-                                if (accessProj !== null) {
-                                    // Accept
-                                    var returnMessage = {
-                                        success: true,
-                                    };
-                                    deffered.resolve(returnMessage);
-                                } else {
-                                    returnMessage = {
-                                        success: false,
-                                        error: 'Could not set project access',
-                                        table: 'project_access',
-                                    };
-                                    deffered.reject(returnMessage);
-                                }
-                            })
-                            .catch(function (error) {
-                                var returnMessage = {
-                                    success: false,
-                                    error: error,
-                                    table: 'project_access',
-                                };
-                                deffered.reject(returnMessage);
-                            });
-                        } else {
-                            var returnMessage = {
-                                success: false,
-                                error: 'Could not create project',
-                                table: 'project',
-                            };
-                            deffered.reject(returnMessage);
-                        }
-                    })
-                    .catch(function (error) {
-                        var returnMessage = {
-                            success: false,
-                            error: error,
-                            table: 'project',
-                        };
-                        deffered.reject(returnMessage);
-                    });
-            } else {
-                var returnMessage = {
-                    success: false,
-                    notFound: true,
-                    error: 'Could not find owner',
-                    table: 'profile',
-                };
-                deffered.reject(returnMessage);
-            }
-        })
-        .catch(function (error) {
-            var returnMessage = {
-                success: false,
-                error: error,
-                table: 'profile',
             };
             deffered.reject(returnMessage);
         });

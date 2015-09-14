@@ -37,10 +37,12 @@ module.exports = function (app) {
                     userData, ['owner', 'name', 'safeName']);
 
             if (missingProperties.length) {
+                var errMessage = '';
                 missingProperties.forEach(function (prop) {
-                    reqHelper.createResponse(res, 400,
-                        'Malformed request: ' + prop + ' is required.');
+                    errMessage += 'Malformed request: ' + prop + ' is required.\n';
+                    
                 });
+                reqHelper.createResponse(res, 400, errMessage);
             } else {
                 try {
                     project.newProject(userData).then(
@@ -74,48 +76,38 @@ module.exports = function (app) {
     this.retrieve = function (req, res) {
         if (req.params && req.params.safeName) {
             var userData = { safeName: req.params.safeName };
-            var missingProperties =
-                reqHelper.checkRequiredData(
-                    userData, ['safeName']);
 
-            if (missingProperties.length) {
-                missingProperties.forEach(function (prop) {
-                    reqHelper.createResponse(res, 400,
-                        'Malformed request: ' + prop + ' is required.');
-                });
-            } else {
-                try {
-                    project.getProject(userData).then(
-                        function (result) {
-                            var data = {
-                                id: uuid.v4(),
-                                items: [
-                                    {
-                                        project: {
-                                            safeName: result.safeName,
-                                            owner: result.owner,
-                                            name: result.name,
-                                            developmentContainerId:
-                                            result.developmentContainerId,
-                                        },
+            try {
+                project.getProject(userData).then(
+                    function (result) {
+                        var data = {
+                            id: uuid.v4(),
+                            items: [
+                                {
+                                    project: {
+                                        safeName: result.safeName,
+                                        owner: result.owner,
+                                        name: result.name,
+                                        developmentContainerId:
+                                        result.developmentContainerId,
                                     },
-                                ],
-                            };
-                            reqHelper.createResponse(res, 200, data);
-                        },
-                        function (err) {
-                            if (err.notFound) {
-                                reqHelper.createResponse(res, 404,
-                                [err.table, err.error].join(' - '));
-                            } else {
-                                reqHelper.createResponse(res, 400,
-                                [err.table, err.error].join(' - '));
-                            }
+                                },
+                            ],
+                        };
+                        reqHelper.createResponse(res, 200, data);
+                    },
+                    function (err) {
+                        if (err.notFound) {
+                            reqHelper.createResponse(res, 404,
+                            [err.table, err.error].join(' - '));
+                        } else {
+                            reqHelper.createResponse(res, 400,
+                            [err.table, err.error].join(' - '));
                         }
-                    );
-                } catch (e) {
-                    reqHelper.createResponse(res, 400, e[0]);
-                }
+                    }
+                );
+            } catch (e) {
+                reqHelper.createResponse(res, 400, e[0]);
             }
         } else {
             reqHelper.createResponse(res, 400, 'Malformed request');
@@ -139,36 +131,23 @@ module.exports = function (app) {
     this.update = function (req, res) {
         if (req.params && req.params.safeName && reqHelper.checkMessageStructure(req)) {
             var userData = req.body.data.items[0];
-            if (req.params.safeName)
-            userData['safeName'] = req.params.safeName;
-            var missingProperties =
-                reqHelper.checkRequiredData(
-                    userData, ['safeName']);
-
-            if (missingProperties.length) {
-                missingProperties.forEach(function (prop) {
-                    reqHelper.createResponse(res, 400,
-                        'Malformed request: ' + prop + ' is required.');
-                });
-            } else {
-                try {
-                    project.updateProject(userData).then(
-                        function () {
-                            reqHelper.createResponse(res, 200);
-                        },
-                        function (err) {
-                            if (err.notFound) {
-                                reqHelper.createResponse(res, 404,
-                                [err.table, err.error].join(' - '));
-                            } else {
-                                reqHelper.createResponse(res, 400,
-                                [err.table, err.error].join(' - '));
-                            }
+            try {
+                project.updateProject(userData).then(
+                    function () {
+                        reqHelper.createResponse(res, 200);
+                    },
+                    function (err) {
+                        if (err.notFound) {
+                            reqHelper.createResponse(res, 404,
+                            [err.table, err.error].join(' - '));
+                        } else {
+                            reqHelper.createResponse(res, 400,
+                            [err.table, err.error].join(' - '));
                         }
-                    );
-                } catch (e) {
-                    reqHelper.createResponse(res, 400, e[0]);
-                }
+                    }
+                );
+            } catch (e) {
+                reqHelper.createResponse(res, 400, e[0]);
             }
         } else {
             reqHelper.createResponse(res, 400, 'Malformed request');
@@ -193,14 +172,16 @@ module.exports = function (app) {
                     userData, ['safeName']);
 
             if (missingProperties.length) {
+                var errMessage = '';
                 missingProperties.forEach(function (prop) {
-                    reqHelper.createResponse(res, 400,
-                        'Malformed request: ' + prop + ' is required.');
+                    errMessage += 'Malformed request: ' + prop + ' is required.\n';
+                    
                 });
+                reqHelper.createResponse(res, 400, errMessage);
             } else {
                 try {
                     project.deleteProject(userData).then(
-                        function (result) {
+                        function () {
                             reqHelper.createResponse(res, 200);
                         },
                         function (err) {

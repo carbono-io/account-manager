@@ -1,6 +1,10 @@
 'use strict';
+
 var request = require('supertest');
 var should = require('chai').should();
+var cp = require("child_process");
+
+var cmdLine = "mysql --user=root < schemas.sql";
 
 var url = 'http://localhost:7888/account-manager';
 
@@ -39,17 +43,23 @@ var serverObj;
 
 describe('Routing tests --> ', function () {
     before(function () {
+        cp.exec(cmdLine, function(error, stdout, stderr) {
+            if (error !== null) {
+                console.log('Database error -- ' + error,stdout,stderr);
+            }
+        }); 
         // Starting Server
         serverObj = require('../');
     });
 
     after(function () {
         // Closing Server
-        var sequelize = require('../app/models/index.js');
-        var promise = sequelize.sequelize.sync({force: true});
-        promise.then(function () {
-            serverObj.close();
+        cp.exec(cmdLine, function(error, stdout, stderr) {
+            if (error !== null) {
+                console.log('Database error -- ' + error,stdout,stderr);
+            }
         });
+        serverObj.close();
     });
 
     describe('Basic routes - This test should work when:', function () {
@@ -538,6 +548,407 @@ describe('Routing tests --> ', function () {
                     } catch (e) {
                         return done(e);
                     }
+                    done();
+                });
+        });
+    });
+
+    describe('Project Routes: Create and get: ', function () {
+        it('can create a new project', function (done) {
+            server
+                .post('/projects')
+                .send(correctPostMessage({
+                        name: 'Projeto Teste',
+                        safeName: 'projeto-teste',
+                        owner: '00122eee',
+                    }))
+                .expect(200)
+                .end(function (err, res) {
+                    if (err) {
+                        return done(err);
+                    }
+                    should.not.exist(err);
+                    res.status.should.equal(200);
+                    done();
+                });
+        });
+
+        it('cannot create a existing project', function (done) {
+            server
+                .post('/projects')
+                .send(correctPostMessage({
+                        name: 'Projeto Teste',
+                        safeName: 'projeto-teste',
+                        owner: '00122eee',
+                    }))
+                .expect(400)
+                .end(function (err, res) {
+                    if (err) {
+                        return done(err);
+                    }
+                    should.not.exist(err);
+                    res.status.should.equal(400);
+                    done();
+                });
+        });
+
+        it('cannot create a project with name too big', function (done) {
+            server
+                .post('/projects')
+                .send(correctPostMessage({
+                        name: 'oooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo',
+                        safeName: 'projeto-teste',
+                        owner: '00122eee',
+                    }))
+                .expect(400)
+                .end(function (err, res) {
+                    if (err) {
+                        return done(err);
+                    }
+                    should.not.exist(err);
+                    res.status.should.equal(400);
+                    done();
+                });
+        });
+
+        it('cannot create a project with safeName too big', function (done) {
+            server
+                .post('/projects')
+                .send(correctPostMessage({
+                        name: 'Projeto Teste',
+                        safeName: 'oooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo',
+                        owner: '00122eee',
+                    }))
+                .expect(400)
+                .end(function (err, res) {
+                    if (err) {
+                        return done(err);
+                    }
+                    should.not.exist(err);
+                    res.status.should.equal(400);
+                    done();
+                });
+        });
+
+        it('cannot create a project with owner too big', function (done) {
+            server
+                .post('/projects')
+                .send(correctPostMessage({
+                        name: 'Projeto Teste',
+                        safeName: 'projeto-teste',
+                        owner: 'oooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo',
+                    }))
+                .expect(400)
+                .end(function (err, res) {
+                    if (err) {
+                        return done(err);
+                    }
+                    should.not.exist(err);
+                    res.status.should.equal(400);
+                    done();
+                });
+        });
+
+        it('cannot create a project without owner', function (done) {
+            server
+                .post('/projects')
+                .send(correctPostMessage({
+                        name: 'Projeto Teste',
+                        safeName: 'projeto-teste',
+                    }))
+                .expect(400)
+                .end(function (err, res) {
+                    if (err) {
+                        return done(err);
+                    }
+                    should.not.exist(err);
+                    res.status.should.equal(400);
+                    done();
+                });
+        });
+
+        it('can get a existing project', function (done) {
+            server
+                .get('/projects/projeto-teste')
+                .expect(200)
+                .end(function (err, res) {
+                    if (err) {
+                        return done(err);
+                    }
+                    should.not.exist(err);
+                    res.status.should.equal(200);
+                    try {
+                        var jsonResponse = JSON.parse(res.body);
+                        defaultResponse(jsonResponse);
+                        jsonResponse.data.should.have.property('items');
+                        jsonResponse.data.items[0].should.property('project');
+                        jsonResponse.data.items[0].project
+                        .should.property('safeName');
+                        jsonResponse.data.items[0].project
+                        .should.property('owner');
+                        jsonResponse.data.items[0].project
+                        .should.property('name');
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot get a non-existing project', function (done) {
+            server
+                .get('/projects/projeto-fake')
+                .expect(404)
+                .end(function (err, res) {
+                    if (err) {
+                        return done(err);
+                    }
+                    should.not.exist(err);
+                    res.status.should.equal(404);
+                    done();
+                });
+        });
+
+        it('cannot get a project without safeName', function (done) {
+            server
+                .get('/projects/')
+                .expect(404)
+                .end(function (err, res) {
+                    if (err) {
+                        return done(err);
+                    }
+                    should.not.exist(err);
+                    res.status.should.equal(404);
+                    done();
+                });
+        });
+        
+        it('cannot get a project with safeName too big', function (done) {
+            server
+                .get('/projects/ooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo')
+                .expect(400)
+                .end(function (err, res) {
+                    if (err) {
+                        return done(err);
+                    }
+                    should.not.exist(err);
+                    res.status.should.equal(400);
+                    done();
+                });
+        });
+    });
+    describe('Project Routes: update and delete: ', function () {
+        it('can update an existing project', function (done) {
+            server
+                .put('/projects/projeto-teste')
+                .send(correctPostMessage({
+                        name: 'Projeto Teste Mudado',
+                        description: 'Descrição do projeto',
+                    }))
+                .expect(200)
+                .end(function (err, res) {
+                    if (err) {
+                        return done(err);
+                    }
+                    should.not.exist(err);
+                    res.status.should.equal(200);
+                    done();
+                });
+        });
+
+        it('can update the name of an existing project', function (done) {
+            server
+                .put('/projects/projeto-teste')
+                .send(correctPostMessage({
+                        name: 'Projeto Teste Mudado',
+                    }))
+                .expect(200)
+                .end(function (err, res) {
+                    if (err) {
+                        return done(err);
+                    }
+                    should.not.exist(err);
+                    res.status.should.equal(200);
+                    done();
+                });
+        });
+
+        it('can update the desc of an existing project', function (done) {
+            server
+                .put('/projects/projeto-teste')
+                .send(correctPostMessage({
+                        description: 'Descrição do projeto',
+                    }))
+                .expect(200)
+                .end(function (err, res) {
+                    if (err) {
+                        return done(err);
+                    }
+                    should.not.exist(err);
+                    res.status.should.equal(200);
+                    done();
+                });
+        });
+
+        it('cant update project without params', function (done) {
+            server
+                .put('/projects/projeto-teste')
+                .send(correctPostMessage({
+                    }))
+                .expect(400)
+                .end(function (err, res) {
+                    if (err) {
+                        return done(err);
+                    }
+                    should.not.exist(err);
+                    res.status.should.equal(400);
+                    done();
+                });
+        });
+
+        it('cant update an existing project with safeNametoo big', 
+        function (done) {
+            server
+                .put('/projects/ooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo')
+                .send(correctPostMessage({
+                        name: 'Projeto Teste Mudado',
+                        description: 'Descrição do projeto',
+                    }))
+                .expect(400)
+                .end(function (err, res) {
+                    if (err) {
+                        return done(err);
+                    }
+                    should.not.exist(err);
+                    res.status.should.equal(400);
+                    done();
+                });
+        });
+
+        it('cant update a non-existing project', function (done) {
+            server
+                .put('/projects/projeto-fake')
+                .send(correctPostMessage({
+                        name: 'Projeto Teste Mudado',
+                        description: 'Descrição do projeto',
+                    }))
+                .expect(404)
+                .end(function (err, res) {
+                    if (err) {
+                        return done(err);
+                    }
+                    should.not.exist(err);
+                    res.status.should.equal(404);
+                    done();
+                });
+        });
+
+        it('cant update a existing project with name too big', 
+        function (done) {
+            server
+                .put('/projects/projeto-fake')
+                .send(correctPostMessage({
+                        name: 'ooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo',
+                        description: 'Descrição do projeto',
+                    }))
+                .expect(400)
+                .end(function (err, res) {
+                    if (err) {
+                        return done(err);
+                    }
+                    should.not.exist(err);
+                    res.status.should.equal(400);
+                    done();
+                });
+        });
+
+        it('cant delete a non-existing project', function (done) {
+            server
+                .delete('/projects/projeto-fake')
+                .expect(404)
+                .end(function (err, res) {
+                    if (err) {
+                        return done(err);
+                    }
+                    should.not.exist(err);
+                    res.status.should.equal(404);
+                    done();
+                });
+        });
+
+        it('cant delete a project without safeName', function (done) {
+            server
+                .delete('/projects/')
+                .expect(404)
+                .end(function (err, res) {
+                    if (err) {
+                        return done(err);
+                    }
+                    should.not.exist(err);
+                    res.status.should.equal(404);
+                    done();
+                });
+        });
+
+        it('cant delete a project with safeName too big', function (done) {
+            server
+                .delete('/projects/ooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo')
+                .expect(400)
+                .end(function (err, res) {
+                    if (err) {
+                        return done(err);
+                    }
+                    should.not.exist(err);
+                    res.status.should.equal(400);
+                    done();
+                });
+        });
+
+        it('can delete a existing project', function (done) {
+            server
+                .delete('/projects/projeto-teste')
+                .expect(200)
+                .end(function (err, res) {
+                    if (err) {
+                        return done(err);
+                    }
+                    should.not.exist(err);
+                    res.status.should.equal(200);
                     done();
                 });
         });
