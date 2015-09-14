@@ -69,6 +69,7 @@ module.exports = function (app) {
      * @param {Object} res - Response object
      *
      * curl example: curl localhost:7888/account-manager/projects/projeto-teste
+     * --verbose
      */
     this.retrieve = function (req, res) {
         if (req.params && req.params.safeName) {
@@ -103,12 +104,12 @@ module.exports = function (app) {
                             reqHelper.createResponse(res, 200, data);
                         },
                         function (err) {
-                            if(err.length) {
-                                reqHelper.createResponse(res, 400,
+                            if (err.notFound) {
+                                reqHelper.createResponse(res, 404,
                                 [err.table, err.error].join(' - '));
                             } else {
-                                reqHelper.createResponse(res, 404,
-                                err);
+                                reqHelper.createResponse(res, 400,
+                                [err.table, err.error].join(' - '));
                             }
                         }
                     );
@@ -176,16 +177,15 @@ module.exports = function (app) {
 
     /**
      * Deletes a project
-     * To do.....
      *
      * @param {Object} req - Request object
      * @param {string} req.params.safeName - The namespace of the project
      * @param {Object} res - Response object
      *
      * curl example: curl -X DELETE 
-     * localhost:7888/account-manager/projects/projeto-teste
+     * localhost:7888/account-manager/projects/projeto-teste --verbose
      */
-    this.retrieve = function (req, res) {
+    this.delete = function (req, res) {
         if (req.params && req.params.safeName) {
             var userData = { safeName: req.params.safeName };
             var missingProperties =
@@ -199,7 +199,20 @@ module.exports = function (app) {
                 });
             } else {
                 try {
-                    // To do...
+                    project.deleteProject(userData).then(
+                        function (result) {
+                            reqHelper.createResponse(res, 200);
+                        },
+                        function (err) {
+                            if (err.notFound) {
+                                reqHelper.createResponse(res, 404,
+                                [err.table, err.error].join(' - '));
+                            } else {
+                                reqHelper.createResponse(res, 400,
+                                [err.table, err.error].join(' - '));
+                            }
+                        }
+                    );
                 } catch (e) {
                     reqHelper.createResponse(res, 400, e[0]);
                 }

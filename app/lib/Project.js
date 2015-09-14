@@ -67,7 +67,7 @@ Project.prototype.newProject = function (data) {
         };
         deffered.reject(returnMessage);
     }
-
+    // Gets a accessLevel for dev or creates if not exists
     var AccessLevel = app.get('models').AccessLevel;
     AccessLevel
         .findOne({
@@ -106,7 +106,7 @@ Project.prototype.newProject = function (data) {
             };
             deffered.reject(returnMessage);
         });
-
+    // Finds the profile that will own the project
     var Profile = app.get('models').Profile;
     Profile
         .findOne({
@@ -114,6 +114,7 @@ Project.prototype.newProject = function (data) {
         })
         .then(function (profile) {
             if (profile !== null) {
+                // Try to create the project
                 var Project = app.get('models').Project;
                  Project
                     .build({
@@ -124,6 +125,7 @@ Project.prototype.newProject = function (data) {
                     .save()
                     .then(function (project) {
                         if (project !== null) {
+                            // If the project is created, create the access
                             var ProjectAccess = app.get('models').ProjectAccess;
                             ProjectAccess
                             .build({
@@ -156,7 +158,6 @@ Project.prototype.newProject = function (data) {
                                 };
                                 deffered.reject(returnMessage);
                             });
-                            
                         } else {
                             var returnMessage = {
                                 success: false,
@@ -177,6 +178,7 @@ Project.prototype.newProject = function (data) {
             } else {
                 var returnMessage = {
                     success: false,
+                    notFound: true,
                     error: 'Could not find owner',
                     table: 'profile',
                 };
@@ -227,7 +229,7 @@ Project.prototype.getProject = function (data) {
         };
         deffered.reject(returnMessage);
     }
-    
+    // Try to get project from safe_name
     var Project = app.get('models').Project;
     Project
         .findOne({
@@ -235,6 +237,7 @@ Project.prototype.getProject = function (data) {
         })
         .then(function (project) {
             if (project !== null) {
+                // If found project
                 var returnMessage = {
                     success: true,
                     safeName: project.safeName,
@@ -244,9 +247,10 @@ Project.prototype.getProject = function (data) {
                 };
                 deffered.resolve(returnMessage);
             } else {
-                // 404
+                // If 404
                 returnMessage = {
                     success: false,
+                    notFound: true,
                     error: 'Could not find project',
                     table: 'project',
                 };
@@ -413,6 +417,102 @@ Project.prototype.updateProject = function (data) {
                 }
             } else {
                 // 404
+                returnMessage = {
+                    success: false,
+                    notFound: true,
+                    error: 'Could not find project',
+                    table: 'project',
+                };
+                deffered.reject(returnMessage);
+            }
+        })
+        .catch(function (error) {
+            var returnMessage = {
+                success: false,
+                error: error,
+                table: 'project',
+            };
+            deffered.reject(returnMessage);
+        });
+    return deffered.promise;
+};
+
+/**
+ * Method that deletes a project
+ *
+ * @function
+ * @param {Object} data - Object containing necessary data
+ * @param {string} data.safeName - The safeName of the project
+ *
+ * @returns {Object} returnMessage - Object with message
+ * @returns {boolean} returnMessage.sucess - Operation success
+ * @returns {Object} returnMessage.error - Error information
+ * @returns {string} returnMessage.table - Table in which the error
+ * occurred
+ */
+Project.prototype.deleteProject = function (data) {
+    var deffered = q.defer();
+    var returnMessage = null;
+    // Verifications
+    if (data.safeName.length > 80) {
+        returnMessage = {
+            success: false,
+            length: true,
+            error: {
+                message: 'Param safeName must have max length of 80',
+            },
+            table: 'project',
+        };
+        deffered.reject(returnMessage);
+    }
+    // Try to fing project
+    var Project = app.get('models').Project;
+    Project
+        .findOne({
+            where: {safeName: data.safeName},
+        })
+        .then(function (project) {
+            if (project !== null) {
+                // And then to destroy it
+                project.destroy()
+                    .then(function (res) {
+                        if (res !== null) {
+                            // If it was destroyed, try to destroy access
+                            var ProjectAccess = app.get('models').ProjectAccess;
+                            ProjectAccess
+                            .destroy({
+                                where: {project_id: project.get().id},
+                            })
+                            .then(function (projAccess) {
+                                if (projAccess !== null) {
+                                    // If access was destroyes, return true
+                                    var returnMessage = {
+                                        success: true,
+                                    };
+                                    deffered.resolve(returnMessage);
+                                }
+                            })
+                            .catch(function (error) {
+                                var returnMessage = {
+                                    success: false,
+                                    error: error,
+                                    table: 'project',
+                                };
+                                deffered.reject(returnMessage);
+                            });
+                            
+                        }
+                    })
+                    .catch(function (error) {
+                        var returnMessage = {
+                            success: false,
+                            error: error,
+                            table: 'project',
+                        };
+                        deffered.reject(returnMessage);
+                    });
+            } else {
+                // If 404
                 returnMessage = {
                     success: false,
                     notFound: true,
