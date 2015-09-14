@@ -2,9 +2,9 @@
 
 var request = require('supertest');
 var should = require('chai').should();
-var cp = require("child_process");
+var cp = require('child_process');
 
-var cmdLine = "mysql --user=root < schemas.sql";
+var cmdLine = 'mysql --user=root < schemas.sql';
 
 var url = 'http://localhost:7888/account-manager';
 
@@ -43,18 +43,18 @@ var serverObj;
 
 describe('Routing tests --> ', function () {
     before(function () {
-        cp.exec(cmdLine, function(error, stdout, stderr) {
+        cp.exec(cmdLine, function (error, stdout, stderr) {
             if (error !== null) {
                 console.log('Database error -- ' + error,stdout,stderr);
             }
-        }); 
+        });
         // Starting Server
         serverObj = require('../');
     });
 
     after(function () {
         // Closing Server
-        cp.exec(cmdLine, function(error, stdout, stderr) {
+        cp.exec(cmdLine, function (error, stdout, stderr) {
             if (error !== null) {
                 console.log('Database error -- ' + error,stdout,stderr);
             }
@@ -621,7 +621,7 @@ describe('Routing tests --> ', function () {
                 .post('/projects')
                 .send(correctPostMessage({
                         name: 'Projeto Teste',
-                        safeName: 'oooooooooooooooooooooooooooooooooooooooooooo' +
+                        safeName: 'oooooooooooooooooooooooooooooooooooooooooo' +
                         'oooooooooooooooooooooooooooooooooooooooooooooooo' +
                         'oooooooooooooooooooooooooooooooooooooooooooooooo' +
                         'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
@@ -737,7 +737,7 @@ describe('Routing tests --> ', function () {
                     done();
                 });
         });
-        
+
         it('cannot get a project with safeName too big', function (done) {
             server
                 .get('/projects/ooooooooooooooooooooooooooooooooooooooooo' +
@@ -826,7 +826,7 @@ describe('Routing tests --> ', function () {
                 });
         });
 
-        it('cant update an existing project with safeNametoo big', 
+        it('cant update an existing project with safeNametoo big',
         function (done) {
             server
                 .put('/projects/ooooooooooooooooooooooooooooooooooooooooo' +
@@ -868,7 +868,7 @@ describe('Routing tests --> ', function () {
                 });
         });
 
-        it('cant update a existing project with name too big', 
+        it('cant update a existing project with name too big',
         function (done) {
             server
                 .put('/projects/projeto-fake')

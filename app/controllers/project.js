@@ -23,10 +23,10 @@ module.exports = function (app) {
      * @param {string} req.safeName - The safeName of the project
      * @param {Object} res - Response object
      *
-     * curl -X POST localhost:7888/account-manager/projects/ -d 
-     * '{"apiVersion":"1.0", "id":"23123-123123123-12312", 
-     * "data":{"id": "1234", "items": [{"owner" : "12311jg3123kj", 
-     * "name": "Projeto Teste", "safeName": "projeto-teste"}]}}' 
+     * curl -X POST localhost:7888/account-manager/projects/ -d
+     * '{"apiVersion":"1.0", "id":"23123-123123123-12312",
+     * "data":{"id": "1234", "items": [{"owner" : "12311jg3123kj",
+     * "name": "Projeto Teste", "safeName": "projeto-teste"}]}}'
      * --verbose -H "Content-Type: application/json"
      */
     this.create = function (req, res) {
@@ -39,8 +39,8 @@ module.exports = function (app) {
             if (missingProperties.length) {
                 var errMessage = '';
                 missingProperties.forEach(function (prop) {
-                    errMessage += 'Malformed request: ' + prop + ' is required.\n';
-                    
+                    errMessage += 'Malformed request: ' + prop +
+                    ' is required.\n';
                 });
                 reqHelper.createResponse(res, 400, errMessage);
             } else {
@@ -122,14 +122,15 @@ module.exports = function (app) {
      * @param {Object} req.description - Description of the project
      * @param {Object} res - Response object
      *
-     * curl -X PUT localhost:7888/account-manager/projects/projeto-teste -d 
+     * curl -X PUT localhost:7888/account-manager/projects/projeto-teste -d
      * '{"apiVersion":"1.0", "id":"23123-123123123-12312", "data":{"id":
-     * "1234", "items": [{ "name": "Mudara Nome", "description": 
-     * "Uma nova description"}]}}' 
+     * "1234", "items": [{ "name": "Mudara Nome", "description":
+     * "Uma nova description"}]}}'
      * --verbose -H "Content-Type: application/json"
      */
     this.update = function (req, res) {
-        if (req.params && req.params.safeName && reqHelper.checkMessageStructure(req)) {
+        if (req.params && req.params.safeName &&
+            reqHelper.checkMessageStructure(req)) {
             var userData = req.body.data.items[0];
             try {
                 project.updateProject(userData).then(
@@ -161,7 +162,7 @@ module.exports = function (app) {
      * @param {string} req.params.safeName - The namespace of the project
      * @param {Object} res - Response object
      *
-     * curl example: curl -X DELETE 
+     * curl example: curl -X DELETE
      * localhost:7888/account-manager/projects/projeto-teste --verbose
      */
     this.delete = function (req, res) {
@@ -174,8 +175,8 @@ module.exports = function (app) {
             if (missingProperties.length) {
                 var errMessage = '';
                 missingProperties.forEach(function (prop) {
-                    errMessage += 'Malformed request: ' + prop + ' is required.\n';
-                    
+                    errMessage += 'Malformed request: ' + prop +
+                     ' is required.\n';
                 });
                 reqHelper.createResponse(res, 400, errMessage);
             } else {

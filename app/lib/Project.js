@@ -79,7 +79,7 @@ Project.prototype.newProject = function (data) {
                     if (profile !== null) {
                         // Try to create the project
                         var Project = app.get('models').Project;
-                         Project
+                        Project
                             .build({
                                 name: data.name,
                                 safeName: data.safeName,
@@ -88,8 +88,9 @@ Project.prototype.newProject = function (data) {
                             .save()
                             .then(function (project) {
                                 if (project !== null) {
-                                    // If the project is created, create the access
-                                    var ProjectAccess = app.get('models').ProjectAccess;
+                                    // If the project is created, create
+                                    var ProjectAccess =
+                                    app.get('models').ProjectAccess;
                                     ProjectAccess
                                     .build({
                                         profile_id: project.owner,

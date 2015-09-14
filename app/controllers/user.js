@@ -34,8 +34,9 @@ module.exports = function (app) {
             if (missingProperties.length) {
                 var errMessage = '';
                 missingProperties.forEach(function (prop) {
-                    errMessage += 'Malformed request: ' + prop + ' is required.\n';
-                    
+                    errMessage += 'Malformed request: ' + prop +
+                     ' is required.\n';
+
                 });
                 reqHelper.createResponse(res, 400, errMessage);
             } else {
@@ -61,8 +62,6 @@ module.exports = function (app) {
             reqHelper.createResponse(res, 400, 'Malformed request');
         }
     };
-
-    
 
     /**
      * Returns all user informations that will be available at oauth.
