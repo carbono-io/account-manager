@@ -13,9 +13,8 @@ Installation and Running
 
 Tests and Dev
 =============
-```export NODE_ENV=test```
 ```gulp test```
-*Hint:* To run tests, you must set the NODE_ENV to test
+*Hint:* You must have mysql installed. Default user for tests is root
 *Hint:* To run tests, you must have a etcd server running and also the mocks project
 
 Interfaces
