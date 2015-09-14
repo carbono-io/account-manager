@@ -1,15 +1,31 @@
 'use strict';
 
+var q = require('q');
+
 var ProfileUser = function(app) {
     this.app = app;
     this.path = 'http://localhost:7888/account-manager';
     return this;
 };
 
-// True for sucess and False for error
-// May throw exceptions
+
+/**
+ * Calls AccountManager to create a user with the given data
+ *
+ * @function
+ * @param {Object} data - Object containing necessary data
+ * @param {string} data.email - The email of the user
+ * @param {string} data.password - The password of the user
+ * @param {string} data.code - The code of the user
+ * @param {string} data.name - The name of the user
+ *
+ * @returns {boolean} true - Operation success
+ * @returns {boolean} false - Operation error
+ */
 ProfileUser.prototype.createUser = function(data){
+    var deffered = q.defer();
     if (data.code && data.name && data.email && data.password) {
+        
         var options = {
             uri: this.path + '/profiles',
             method: 'POST',
@@ -33,20 +49,44 @@ ProfileUser.prototype.createUser = function(data){
         
         this.app.request(options, function (err, res, body) {
                 if (!err && res.statusCode == 200) {
-                    return true;
-                  } else {
-                      return false;
-                    //   console.log(err + '   -   ' + res.statusCode);
-                  }
+                    deffered.resolve(true);
+                } else {
+                  deffered.resolve(false);
+                //   console.log(err + '   -   ' + res.statusCode);
+                }
             })
     } else {
-        throw 'Missing param';
+        deffered.resolve(false);
     }
+    return deffered.promise;
 };
 
-// userData for sucess and False for error
-// May throw exceptions
-ProfileUser.prototype.getProfile = function(data){
+
+/**
+ * Calls AccountManager to get the user profile
+ *
+ * @function
+ * @param {Object} data - Object containing necessary data
+ * @param {string} data.code - The code of the user
+ *
+ * @returns {Object} data - Object containing the ProfileInfo
+ * @returns {string} data.provider - The provider with which the user 
+ * authenticated
+ * @returns {string} data.displayName - The name of this user, suitable for 
+ * display.
+ * @returns {Object} data.name - The complete name of the user
+ * @returns {string} data.name.familyName - The family name of this user, or 
+ * "last name" in most Western languages.
+ * @returns {string} data.name.givenName - The given name of this user, or 
+ * "first name" in most Western languages.
+ * @returns {string} data.name.middleName - The middle name of this user.
+ * @returns {Array} data.email - The list of emails
+ * @returns {string} data.email[0].value - The actual email address.
+ * @returns {string} data.email[0].type - The type of email address 
+ * (home, work, etc.).
+ */
+ProfileUser.prototype.getProfile = function(data) {
+    var deffered = q.defer();
     if (data.code) {
         var options = {
             uri: this.path + '/profiles/' + data.code,
@@ -59,24 +99,53 @@ ProfileUser.prototype.getProfile = function(data){
                         var jObj = JSON.parse(res.body);
                         jObj = JSON.parse(jObj);
                         var data = jObj.data.items[0].profile;
-                        return data;
+                        deffered.resolve(mountProfileReturnMessage(data));
                     } catch (e) {
-                        throw (e);
+                        deffered.resolve(false);
                     }
                     
                   } else {
-                      return false;
+                      deffered.resolve(false);
                     //   console.log(err + '   -   ' + res.statusCode);
                   }
             })
     } else {
-        throw 'Missing param';
+        deffered.resolve(false);
     }
+    return deffered.promise;
 };
 
-// True for sucess and False for error
-// May throw exceptions
+var mountProfileReturnMessage = function(profile) {
+    var data = {
+        provider: 'carbono-oauth2',
+        displayName: profile.name,
+        name: {
+            familyName: profile.name.split(' ')[profile.name.split(' ').length - 1],
+            givenName: profile.name,
+            middleName: '',
+        },
+        emails: [{
+            value: profile.email,
+            type: 'personal',
+        }],
+        photos: [],
+    };
+    return data;
+}
+
+/**
+ * Calls AccountManager to check a user email and password
+ *
+ * @function
+ * @param {Object} data - Object containing necessary data
+ * @param {string} data.email - The email of the user
+ * @param {string} data.password - The password of the user
+ *
+ * @returns {boolean} true - Operation success
+ * @returns {boolean} false - Operation error
+ */
 ProfileUser.prototype.login = function(data){
+    var deffered = q.defer();
     if (data.email && data.password) {
         var options = {
             uri: this.path + '/login',
@@ -98,20 +167,43 @@ ProfileUser.prototype.login = function(data){
         
         this.app.request(options, function (err, res, body) {
                 if (!err && res.statusCode == 200) {
-                    return true;
+                    deffered.resolve(true);
                 } else {
-                    return false;
+                    deffered.resolve(false);
                 //   console.log(err + '   -   ' + res.statusCode);
                 }
             })
     } else {
-        throw 'Missing param';
+        deffered.resolve(false);
     }
+    return deffered.promise;
 };
 
-// UserData for sucess and False for error
-// May throw exceptions
+/**
+ * Calls AccountManager to get the user profile
+ *
+ * @function
+ * @param {Object} data - Object containing necessary data
+ * @param {string} data.email - The email of the user
+ *
+ * @returns {Object} data - Object containing the ProfileInfo
+ * @returns {string} data.provider - The provider with which the user 
+ * authenticated
+ * @returns {string} data.displayName - The name of this user, suitable for 
+ * display.
+ * @returns {Object} data.name - The complete name of the user
+ * @returns {string} data.name.familyName - The family name of this user, or 
+ * "last name" in most Western languages.
+ * @returns {string} data.name.givenName - The given name of this user, or 
+ * "first name" in most Western languages.
+ * @returns {string} data.name.middleName - The middle name of this user.
+ * @returns {Array} data.email - The list of emails
+ * @returns {string} data.email[0].value - The actual email address.
+ * @returns {string} data.email[0].type - The type of email address 
+ * (home, work, etc.).
+ */
 ProfileUser.prototype.userInfo = function(data){
+    var deffered = q.defer();
     if (data.email) {
         var options = {
             uri: this.path + '/userInfo',
@@ -135,18 +227,19 @@ ProfileUser.prototype.userInfo = function(data){
                     try {
                         var jObj = JSON.parse(res.body);
                         var data = jObj.data.items[0].profile;
-                        return data;
+                        deffered.resolve(mountProfileReturnMessage(data));
                     } catch (e) {
-                        throw (e);
+                        deffered.resolve(false);
                     }
                 } else {
-                    return false;
+                    deffered.resolve(false);
                 //   console.log(err + '   -   ' + res.statusCode);
                 }
             })
     } else {
-        throw 'Missing param';
+        deffered.resolve(false);
     }
+    return deffered.promise;
 };
 
 
