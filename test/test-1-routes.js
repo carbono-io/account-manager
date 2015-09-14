@@ -761,6 +761,7 @@ describe('Routing tests --> ', function () {
         it('can update an existing project', function (done) {
             server
                 .put('/projects/projeto-teste')
+                .set('Accept', 'application/json')
                 .send(correctPostMessage({
                         name: 'Projeto Teste Mudado',
                         description: 'Descrição do projeto',

@@ -132,6 +132,7 @@ module.exports = function (app) {
         if (req.params && req.params.safeName &&
             reqHelper.checkMessageStructure(req)) {
             var userData = req.body.data.items[0];
+            userData['safeName'] = req.params.safeName;
             try {
                 project.updateProject(userData).then(
                     function () {
