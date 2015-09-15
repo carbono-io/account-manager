@@ -1,0 +1,11 @@
+{
+    "host": "127.0.0.1",
+    "port": 7888,
+    "dbName": "carbono",
+    "dbUsername": "root",
+    "dbPassword": "",
+    "dbHost": "localhost",
+    "dbDialect": "sqlite",
+    "dbTest": true,
+    "dbPath": "/test/carbono.sqlite"
+}
