@@ -124,6 +124,55 @@ UserProfile.prototype.newAccount = function (data) {
     hash(data.password, function (err, hash){
        if(!err){
            data.password = hash;
+            User
+                .build({
+                    email: data.email,
+                    password: data.password,
+                })
+                .save()
+                .then(function (user) {
+                    var Profile = app.get('models').Profile;
+                    Profile.build({
+                        firstName: data.name,
+                        lastName: '',
+                        code: data.code,
+                    })
+                    .save()
+                    .then(function (profile) {
+                
+                        profile.addUsers(user).then(function () {
+                
+                            var returnMessage = {
+                                success: true,
+                            };
+                            deffered.resolve(returnMessage);
+                        })
+                        .catch(function (error) {
+                            var returnMessage = {
+                                success: false,
+                                error: error,
+                                table: 'profile_user',
+                            };
+                            deffered.reject(returnMessage);
+                        });
+                    })
+                    .catch(function (error) {
+                        var returnMessage = {
+                            success: false,
+                            error: error,
+                            table: 'profile',
+                        };
+                        deffered.reject(returnMessage);
+                    });
+                })
+                .catch(function (error) {
+                    var returnMessage = {
+                        success: false,
+                        error: error,
+                        table: 'user',
+                    };
+                    deffered.reject(returnMessage);
+                });
        } else {
             returnMessage = {
             success: false,
@@ -137,56 +186,7 @@ UserProfile.prototype.newAccount = function (data) {
         }
     });
 
-    User
-        .build({
-            email: data.email,
-            password: data.password,
-        })
-        .save()
-        .then(function (user) {
-
-            var Profile = app.get('models').Profile;
-            Profile.build({
-                firstName: data.name,
-                lastName: '',
-                code: data.code,
-            })
-            .save()
-            .then(function (profile) {
-
-                profile.addUsers(user).then(function () {
-
-                    var returnMessage = {
-                        success: true,
-                    };
-                    deffered.resolve(returnMessage);
-                })
-                .catch(function (error) {
-                    var returnMessage = {
-                        success: false,
-                        error: error,
-                        table: 'profile_user',
-                    };
-                    deffered.reject(returnMessage);
-                });
-            })
-            .catch(function (error) {
-                var returnMessage = {
-                    success: false,
-                    error: error,
-                    table: 'profile',
-                };
-                deffered.reject(returnMessage);
-            });
-        })
-        .catch(function (error) {
-            var returnMessage = {
-                success: false,
-                error: error,
-                table: 'user',
-            };
-            deffered.reject(returnMessage);
-        });
+    
     return deffered.promise;
 };
 
@@ -367,19 +367,24 @@ UserProfile.prototype.validatePassword = function (data) {
         where: {email: data.email},
     })
     .then(function (user) {
-        hashCompare(data.password, user.password, function (err, isMatch){
-            if(!err && isMatch){
-                data.password = hash;
-            } else {
-                throw new Error('Password does not match.');
-            }
-        });
-        var returnMessage = {};
         if (user !== null) {
-            returnMessage = {
-                success: true,
-            };
-            deffered.resolve(returnMessage);
+            var returnMessage = {};
+            hashCompare(data.password, user.password, function (err, isMatch){
+                if(!err && isMatch){
+                    data.password = hash;
+                    returnMessage = {
+                        success: true,
+                    };
+                    deffered.resolve(returnMessage);
+                } else {
+                    returnMessage = {
+                        success: false,
+                        error: 'Password does not match',
+                        table: 'user',
+                    };
+                    deffered.reject(returnMessage);
+                }
+            });
         } else {
             returnMessage = {
                 success: false,
