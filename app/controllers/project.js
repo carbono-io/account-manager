@@ -20,47 +20,67 @@ module.exports = function (app) {
      * @param {Object} req - Request object
      * @param {string} req.owner - The owner of the project
      * @param {string} req.name - The name of the project
-     * @param {string} req.safeName - The safeName of the project
+     * @param {string} req.description - The description of the project
      * @param {Object} res - Response object
      *
      * curl -X POST localhost:7888/account-manager/projects/ -d
      * '{"apiVersion":"1.0", "id":"23123-123123123-12312",
-     * "data":{"id": "1234", "items": [{"owner" : "12311jg3123kj",
-     * "name": "Projeto Teste", "safeName": "projeto-teste"}]}}'
+     * "data":{"id": "1234", "items": [{"name": "Projeto Teste", 
+     * "description": "Descricao"}]}}'
      * --verbose -H "Content-Type: application/json"
      */
     this.create = function (req, res) {
-        if (reqHelper.checkMessageStructure(req)) {
-            var userData = req.body.data.items[0];
-            var missingProperties =
-                reqHelper.checkRequiredData(
-                    userData, ['owner', 'name', 'safeName']);
-
-            if (missingProperties.length) {
-                var errMessage = '';
-                missingProperties.forEach(function (prop) {
-                    errMessage += 'Malformed request: ' + prop +
-                    ' is required.\n';
-                });
-                reqHelper.createResponse(res, 400, errMessage);
-            } else {
-                try {
-                    project.newProject(userData).then(
-                        function () {
-                            reqHelper.createResponse(res, 200);
-                        },
-                        function (err) {
-                            reqHelper.createResponse(res, 400,
-                                [err.table, err.error].join(' - '));
-                        }
-                    );
-                } catch (e) {
-                    reqHelper.createResponse(res, 400, e[0]);
+        if (req.headers.crbemail) {
+            if (reqHelper.checkMessageStructure(req)) {
+                var userData = req.body.data.items[0];
+                userData.owner = req.headers.crbemail;
+                var missingProperties =
+                    reqHelper.checkRequiredData(
+                        userData, ['owner', 'name', 'description']);
+    
+                if (missingProperties.length) {
+                    var errMessage = '';
+                    missingProperties.forEach(function (prop) {
+                        errMessage += 'Malformed request: ' + prop +
+                        ' is required.\n';
+                    });
+                    reqHelper.createResponse(res, 400, errMessage);
+                } else {
+                    try {
+                        project.newProject(userData).then(
+                            function (result) {
+                                var data = {
+                                    id: uuid.v4(),
+                                    items: [
+                                        {
+                                            project: {
+                                                safeName: result.safeName,
+                                                name: result.name,
+                                                description: result.description,
+                                            },
+                                        },
+                                    ],
+                                };
+                                reqHelper.createResponse(res, 201, data);
+                            },
+                            function (err) {
+                                reqHelper.createResponse(res, err.code,
+                                    [err.table, err.error].join(' - '));
+                            }
+                        );
+                    } catch (e) {
+                        console.log(e)
+                        reqHelper.createResponse(res, 500, e);
+                    }
                 }
+            } else {
+                reqHelper.createResponse(res, 400, 'Malformed request');
             }
         } else {
-            reqHelper.createResponse(res, 400, 'Malformed request');
+            reqHelper.createResponse(res, 400,
+                'Malformed request - Header attribute cbrEmail not found!');
         }
+        
     };
 
     /**
@@ -73,7 +93,7 @@ module.exports = function (app) {
      * curl example: curl localhost:7888/account-manager/projects/projeto-teste
      * --verbose
      */
-    this.retrieve = function (req, res) {
+    this.get = function (req, res) {
         if (req.params && req.params.safeName) {
             var userData = { safeName: req.params.safeName };
 

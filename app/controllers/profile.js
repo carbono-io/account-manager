@@ -22,7 +22,7 @@ module.exports = function (app) {
      *
      * curl example: curl -X POST localhost:7888/profiles/ -d '{
      "apiVersion":"1.0", "id":"23123-123123123-12312", "data":{"id": "1234",
-     "items": [{"code" : "123456", "name": "Nome", "email": "email@email.com",
+     "items": [{"name": "Nome", "email": "email@email.com",
      "password": "shh~"}]}}' --verbose -H "Content-Type: application/json"
      */
     this.create = function (req, res) {
@@ -30,21 +30,32 @@ module.exports = function (app) {
             var userData = req.body.data.items[0];
             var missingProperties =
                 reqHelper.checkRequiredData(
-                    userData, ['code', 'name', 'email', 'password']);
+                    userData, ['name', 'email', 'password']);
 
             if (missingProperties.length) {
                 var errMessage = '';
                 missingProperties.forEach(function (prop) {
                     errMessage += 'Malformed request: ' + prop +
                      ' is required.\n';
-
                 });
                 reqHelper.createResponse(res, 400, errMessage);
             } else {
                 try {
                     userProfile.newAccount(userData).then(
-                        function () {
-                            reqHelper.createResponse(res, 200);
+                        function (result) {
+                            var data = {
+                                id: uuid.v4(),
+                                items: [
+                                    {
+                                        profile: {
+                                            code: result.code,
+                                            name: result.name,
+                                            email: result.email,
+                                        },
+                                    },
+                                ],
+                            };
+                            reqHelper.createResponse(res, 201, data);
                         },
                         function (err) {
                             reqHelper.createResponse(res, 400,
@@ -52,7 +63,7 @@ module.exports = function (app) {
                         }
                     );
                 } catch (e) {
-                    reqHelper.createResponse(res, 400, e);
+                    reqHelper.createResponse(res, 500, e);
                 }
             }
         } else {
@@ -68,7 +79,7 @@ module.exports = function (app) {
      *
      * curl example: curl localhost:7888/profiles/123456 --verbose
      */
-    this.retrieve = function (req, res) {
+    this.get = function (req, res) {
         if (req.params && req.params.code) {
             var code = { code: req.params.code };
 
@@ -82,7 +93,6 @@ module.exports = function (app) {
                                     code: result.code,
                                     name: result.name,
                                     email: result.email,
-                                    password: result.password,
                                 },
                             },
                         ],
@@ -90,16 +100,13 @@ module.exports = function (app) {
                     reqHelper.createResponse(res, 200, data);
                 },
                 function (err) {
-                    if (err.length) {
-                        reqHelper.createResponse(res, 400, err.error.message);
-                    } else {
-                        reqHelper.createResponse(res, 404, 'profile not found');
-                    }
+                    reqHelper.createResponse(res, 400,
+                                [err.table, err.error].join(' - '));
                 }
             );
         } else {
             reqHelper.createResponse(res, 400,
-                'Malformed request: id is required.');
+                'Malformed request: profile code is required.');
         }
     };
 
