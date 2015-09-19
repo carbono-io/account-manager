@@ -1,6 +1,7 @@
 'use strict';
 
 var q = require('q');
+var bcrypt = require('bcrypt-nodejs');
 
 /**
  * Class that handles user profile
@@ -10,6 +11,42 @@ var q = require('q');
 var app = null;
 var UserProfile = function (paramApp) {
     app = paramApp;
+};
+
+/**
+ * Hash and salt pristine pass word
+ *
+ * @function
+ * @param {string} pwd - Pass word
+ * @param {Object} callback - Object containing necessary data
+ * @param {Object} callback.params.err - Error object
+ * @param {string} callback.params.hash - Salted and hashed pass word
+ */
+var hash = function(pwd, callback) {
+    bcrypt.genSalt(10, function (err, salt) {
+        if (err) return callback(err);
+        bcrypt.hash(pwd, salt, null, function (err, hash) {
+            if (err) return callback(err);
+            callback(null, hash);
+        });
+    });
+};
+
+/**
+ * Compare salted hash to pristine string
+ *
+ * @function
+ * @param {string} pwd - Pass word
+ * @param {string} hashedPwd - Salted hash string
+ * @param {Object} callback - Object containing necessary data
+ * @param {Object} callback.params.err - Error object
+ * @param {boolean} callback.params.isMatch - True if pwd match to hashedPwd
+ */
+var hashCompare = function(pwd, hashedPwd, callback) {
+    bcrypt.compare(pwd, hashedPwd, function(err, isMatch) {
+        if (err) return callback(err);
+        callback(null, isMatch);
+    });
 };
 
 /**
@@ -84,56 +121,72 @@ UserProfile.prototype.newAccount = function (data) {
 
     var User = app.get('models').User;
 
-    User
-        .build({
-            email: data.email,
-            password: data.password,
-        })
-        .save()
-        .then(function (user) {
-
-            var Profile = app.get('models').Profile;
-            Profile.build({
-                firstName: data.name,
-                lastName: '',
-                code: data.code,
-            })
-            .save()
-            .then(function (profile) {
-
-                profile.addUsers(user).then(function () {
-
-                    var returnMessage = {
-                        success: true,
-                    };
-                    deffered.resolve(returnMessage);
+    hash(data.password, function (err, hash){
+       if(!err){
+           data.password = hash;
+            User
+                .build({
+                    email: data.email,
+                    password: data.password,
+                })
+                .save()
+                .then(function (user) {
+                    var Profile = app.get('models').Profile;
+                    Profile.build({
+                        firstName: data.name,
+                        lastName: '',
+                        code: data.code,
+                    })
+                    .save()
+                    .then(function (profile) {
+                
+                        profile.addUsers(user).then(function () {
+                
+                            var returnMessage = {
+                                success: true,
+                            };
+                            deffered.resolve(returnMessage);
+                        })
+                        .catch(function (error) {
+                            var returnMessage = {
+                                success: false,
+                                error: error,
+                                table: 'profile_user',
+                            };
+                            deffered.reject(returnMessage);
+                        });
+                    })
+                    .catch(function (error) {
+                        var returnMessage = {
+                            success: false,
+                            error: error,
+                            table: 'profile',
+                        };
+                        deffered.reject(returnMessage);
+                    });
                 })
                 .catch(function (error) {
                     var returnMessage = {
                         success: false,
                         error: error,
-                        table: 'profile_user',
+                        table: 'user',
                     };
                     deffered.reject(returnMessage);
                 });
-            })
-            .catch(function (error) {
-                var returnMessage = {
-                    success: false,
-                    error: error,
-                    table: 'profile',
-                };
-                deffered.reject(returnMessage);
-            });
-        })
-        .catch(function (error) {
-            var returnMessage = {
-                success: false,
-                error: error,
-                table: 'user',
-            };
-            deffered.reject(returnMessage);
-        });
+       } else {
+            returnMessage = {
+            success: false,
+            length: true,
+            error: {
+                message: 'Password security failed',
+            },
+            table: 'user',
+        };
+        deffered.reject(returnMessage);
+        }
+    });
+
+    
     return deffered.promise;
 };
 
@@ -149,7 +202,7 @@ UserProfile.prototype.newAccount = function (data) {
  * @returns {string} returnMessage.id - The id of the profile
  * @returns {string} returnMessage.name - The name of the user
  * @returns {string} returnMessage.email - The email of the user
- * @returns {string} returnMessage.password - The password of the user
+ * @returns {string} returnMessage.password - The salted and hashed pass word
  * @returns {Object} returnMessage.error - Error information
  * @returns {string} returnMessage.table - Table in which the error
  */
@@ -311,15 +364,27 @@ UserProfile.prototype.validatePassword = function (data) {
     var User = app.get('models').User;
     User
     .findOne({
-        where: {email: data.email, password: data.password},
+        where: {email: data.email},
     })
     .then(function (user) {
-        var returnMessage = {};
         if (user !== null) {
-            returnMessage = {
-                success: true,
-            };
-            deffered.resolve(returnMessage);
+            var returnMessage = {};
+            hashCompare(data.password, user.password, function (err, isMatch){
+                if(!err && isMatch){
+                    data.password = hash;
+                    returnMessage = {
+                        success: true,
+                    };
+                    deffered.resolve(returnMessage);
+                } else {
+                    returnMessage = {
+                        success: false,
+                        error: 'Password does not match',
+                        table: 'user',
+                    };
+                    deffered.reject(returnMessage);
+                }
+            });
         } else {
             returnMessage = {
                 success: false,

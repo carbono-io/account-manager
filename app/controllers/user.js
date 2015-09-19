@@ -45,10 +45,10 @@ module.exports = function (app) {
                         function (err) {
                             if (err.length) {
                                 reqHelper.createResponse(res, 400,
-                                err.error.message);
+                                [err.table, err.error].join(' - '));
                             } else {
                                 reqHelper.createResponse(res, 404,
-                                'invalid email or password');
+                                [err.table, err.error].join(' - '));
                             }
                         });
                 } catch (e) {
@@ -98,10 +98,10 @@ module.exports = function (app) {
                         function (err) {
                             if (err.length) {
                                 reqHelper.createResponse(res, 400,
-                                err.error.message);
+                                [err.table, err.error].join(' - '));
                             } else {
                                 reqHelper.createResponse(res, 404,
-                                'user not found');
+                                [err.table, err.error].join(' - '));
                             }
                         }
                     );
