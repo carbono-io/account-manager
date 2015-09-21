@@ -71,7 +71,7 @@ RequestHelper.prototype.createResponse = function (res, htmlCode, message) {
 
         if (message) {
             var cjm = new CJM({apiVersion: '1.0'});
-            if (htmlCode === 200) {
+            if (htmlCode < 400) {
                 cjm.setData(message);
             } else {
                 cjm.setError({

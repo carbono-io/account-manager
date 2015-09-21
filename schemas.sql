@@ -32,11 +32,9 @@ CREATE TABLE `access_level` (
   `description` text,
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL,
-  `access_type` int(11) unsigned DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `access_type` (`access_type`),
-  CONSTRAINT `access_level_ibfk_1` FOREIGN KEY (`access_type`) REFERENCES `profile` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -146,12 +144,13 @@ CREATE TABLE `project` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(255) DEFAULT NULL,
   `safe_name` varchar(80) DEFAULT NULL,
+  `code` varchar(40) DEFAULT NULL,
   `description` text,
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL,
   `owner` int(11) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `safe_name` (`safe_name`),
+  UNIQUE KEY `code` (`code`),
   KEY `owner` (`owner`),
   CONSTRAINT `project_ibfk_1` FOREIGN KEY (`owner`) REFERENCES `profile` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -237,3 +236,8 @@ UNLOCK TABLES;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2015-09-11 14:48:47
+
+-- INSERTS
+
+INSERT INTO access_level VALUES (NULL, 'write', 'Has write access', NOW(), NOW());
+INSERT INTO access_level VALUES (NULL, 'read', 'Has write access', NOW(), NOW());

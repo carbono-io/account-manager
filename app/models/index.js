@@ -69,23 +69,6 @@ models.forEach(function (model) {
         foreignKeyConstraint: true,
         foreignKey: 'owner',
     });
-
-    // Creates the association of project_acess
-
-    m.AccessLevel.belongsTo(m.Profile, {
-        constraint: false,
-        through: 'project_access',
-        foreignKey: 'access_type',
-        unique: false,
-    });
-
-    m.AccessLevel.belongsTo(m.Project, {
-        constraint: false,
-        through: 'project_access',
-        foreignKey: 'access_type',
-        unique: false,
-    });
-
 }
 )(module.exports);
 
