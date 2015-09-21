@@ -585,7 +585,6 @@ Project.prototype.getProject = function (data) {
     }
     this.getProjectAccess(data.email, data.code).then(
         function(res) {
-            console.log(res.projectAccess)
              if (res.projectAccess !== null && res.projectAccess !== 'none'){
                  app.get('models').Project
                 .findOne({
@@ -593,7 +592,6 @@ Project.prototype.getProject = function (data) {
                 })
                 .then(function (project) {
                     if (project !== null) {
-                        console.log('veio aqui')
                         // If found project
                         var owner = ((res.projectAccess === 'owner')
                         ? true : false);
