@@ -151,6 +151,7 @@ CREATE TABLE `project` (
   `owner` int(11) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `code` (`code`),
+  UNIQUE KEY `safe_name_owner` (`safe_name`, `owner`),
   KEY `owner` (`owner`),
   CONSTRAINT `project_ibfk_1` FOREIGN KEY (`owner`) REFERENCES `profile` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

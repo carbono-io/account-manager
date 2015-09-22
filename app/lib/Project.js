@@ -23,6 +23,109 @@ function slugify(text) {
 }
 
 /**
+ * Generates a random number between two numbers
+ *
+ * @function
+ *
+ * @param {number} low - The low number
+ * @param {number} high - The high number
+ * 
+ * @returns {number} random - The random number
+ * 
+ */
+function random (low, high) {
+    return Math.floor(Math.random() * (high - low + 1) + low);
+}
+
+/**
+ * Slugifies the project name and
+ * Queries the database to find a new safeName that is not present
+ * If there is a safeName, it will generate a random number fom 0 to 100000
+ * And concatenate with the sludified project name
+ *
+ * @function
+ * @param {number} cont - A counter for the loop
+ * @param {string} name - The project name
+ * @param {number} owner - The owner id
+ *
+ * @returns {boolean} ret.success - If found or not a code
+ * @returns {boolean} ret.safeName - The code
+ * 
+ */
+function findUnusedSafeName (cont, name, owner) {
+    var deferred = q.defer();
+    name = slugify(name);
+    
+    if (cont <= 1) {
+        name = name.substring(0, 80);
+    } else {
+        name = name.substring(0, 73) + '-' + random(0, 100000);
+    }
+    var Project = app.get('models').Project;
+    Project
+        .findOne({
+            where: {
+                owner: owner,
+                safeName: name,
+            },
+        })
+        .then(function (project) {
+            var ret = {};
+            if (project === null) {
+                ret = {
+                    success: true,
+                    safeName: name,
+                };
+                deferred.resolve(ret);
+            } else {
+                ret = {
+                    success: false,
+                };
+                deferred.resolve(ret);
+            }
+        })
+        .catch(function (error) {
+            var ret = {
+                success: false,
+            };
+            deferred.resolve(ret);
+        });
+    return deferred.promise;
+}
+
+/**
+ * Generates a new safeName that does not exists in the database
+ *
+ * @function
+ * @param {Object} body - Function that tries to find a code that is not on
+ * the database yet
+ * @param {string} name - The project name
+ * @param {number} owner - The owner id
+ *
+ * @returns {string} ret.safeName - A unused code for the profile
+ */
+function generateSafeName (body, name, owner) {
+    var deferred = q.defer();
+    var cont = 0;
+    function loop() {
+        cont++;
+        body(cont, name, owner).then(function(bool) {
+            if (bool.success) {
+                // If found
+                return deferred.resolve(bool);
+            } else {
+                // If not found yet
+                return q.when(body(cont, name, owner), loop, deferred.reject);
+            }
+        });
+    }
+    q.nextTick(loop);
+    return deferred.promise;
+}
+var app = null;
+
+
+/**
  * Generates a new code that is not in the database
  *
  * @function
@@ -151,17 +254,20 @@ Project.prototype.newProject = function (data) {
 
     // Gets a accessLevel for dev or creates if not exists
     this.getWriteAccessLevel().then(
-        function (accessLevel) {
-            // Finds the profile that will own the project
-            getProfileIdFromEmail(data.owner).then(
-                function (res) {
-                    data.owner = res.profileId;
+    function (accessLevel) {
+        // Finds the profile that will own the project
+        getProfileIdFromEmail(data.owner).then(
+            function (res) {
+                data.owner = res.profileId;
+                generateSafeName(findUnusedSafeName, data.name, data.owner)
+                .then(function (res) {
+                    data.safeName = res.safeName;
                     data.code = uuid.v4();
                     app.get('models').Project
                         .build({
                             name: data.name,
                             code: data.code,
-                            safeName: slugify(data.name).substr(0, 80),
+                            safeName: data.safeName,
                             description: data.description,
                             owner: data.owner,
                         })
@@ -233,7 +339,7 @@ Project.prototype.newProject = function (data) {
                                         name: data.name,
                                         code: data.code,
                                         safeName:
-                                        slugify(data.name).substr(0, 80),
+                                        data.safeName,
                                         description: data.description,
                                         owner: data.owner,
                                     })
@@ -320,12 +426,26 @@ Project.prototype.newProject = function (data) {
                 },
                 function (err) {
                     deffered.reject(err);
-                }
-            );
-        },
-        function (error) {
-            deffered.reject(error);
-        });
+                })
+                .catch(function (error) {
+                    var returnMessage = {
+                        success: false,
+                        code: 500,
+                        error: error,
+                        table: 'project',
+                    };
+                    deffered.reject(returnMessage);
+                });
+                
+            },
+            function (err) {
+                deffered.reject(err);
+            }
+        );
+    },
+    function (error) {
+        deffered.reject(error);
+    });
 
     return deffered.promise;
 };

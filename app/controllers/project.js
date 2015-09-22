@@ -153,6 +153,8 @@ module.exports = function (app) {
                                         safeName: result.safeName,
                                         name: result.name,
                                         description: result.description,
+                                        access: result.access,
+                                        owner: result.owner,
                                     },
                                 },
                             ],

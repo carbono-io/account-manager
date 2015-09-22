@@ -1,7 +1,43 @@
 'use strict';
 
 var q = require('q');
+var bcrypt = require('bcrypt-nodejs');
 
+/**
+ * Hash and salt pristine pass word
+ *
+ * @function
+ * @param {string} pwd - Pass word
+ * @param {Object} callback - Object containing necessary data
+ * @param {Object} callback.params.err - Error object
+ * @param {string} callback.params.hash - Salted and hashed pass word
+ */
+var hash = function(pwd, callback) {
+    bcrypt.genSalt(10, function (err, salt) {
+        if (err) return callback(err);
+        bcrypt.hash(pwd, salt, null, function (err, hash) {
+            if (err) return callback(err);
+            callback(null, hash);
+        });
+    });
+};
+
+/**
+ * Compare salted hash to pristine string
+ *
+ * @function
+ * @param {string} pwd - Pass word
+ * @param {string} hashedPwd - Salted hash string
+ * @param {Object} callback - Object containing necessary data
+ * @param {Object} callback.params.err - Error object
+ * @param {boolean} callback.params.isMatch - True if pwd match to hashedPwd
+ */
+var hashCompare = function(pwd, hashedPwd, callback) {
+    bcrypt.compare(pwd, hashedPwd, function(err, isMatch) {
+        if (err) return callback(err);
+        callback(null, isMatch);
+    });
+};
 /**
  * Class that handles user profile
  *
@@ -109,6 +145,7 @@ UserProfile.prototype.newAccount = function (data) {
         returnMessage = {
             success: false,
             length: true,
+            code: 400,
             error: {
                 message: 'Param name must have max length of 200',
             },
@@ -121,6 +158,7 @@ UserProfile.prototype.newAccount = function (data) {
         returnMessage = {
             success: false,
             length: true,
+            code: 400,
             error: {
                 message: 'Param email must have max length of 200',
             },
@@ -133,6 +171,7 @@ UserProfile.prototype.newAccount = function (data) {
         returnMessage = {
             success: false,
             length: true,
+            code: 400,
             error: {
                 message: 'Param password must have max length of 60',
             },
@@ -142,66 +181,82 @@ UserProfile.prototype.newAccount = function (data) {
     }
 
     var User = app.get('models').User;
-
-    User
-        .build({
-            email: data.email,
-            password: data.password,
-        })
-        .save()
-        .then(function (user) {
-            var Profile = app.get('models').Profile;
-            generateCode(findCodeOnProfile).then(
-                function(res) {
-                    Profile.build({
-                        firstName: data.name,
-                        lastName: '',
-                        code: res.code,
-                    })
-                    .save()
-                    .then(function (profile) {
-                        profile.addUsers(user).then(function () {
-                            var returnMessage = {
-                                success: true,
-                                code: res.code,
-                                name: data.name,
-                                email: data.email,
-                            };
-                            deffered.resolve(returnMessage);
+    hash(data.password, function (err, hash){
+        if(!err){
+            data.password = hash;
+            User
+            .build({
+                email: data.email,
+                password: data.password,
+            })
+            .save()
+            .then(function (user) {
+                var Profile = app.get('models').Profile;
+                generateCode(findCodeOnProfile).then(
+                    function(res) {
+                        Profile.build({
+                            firstName: data.name,
+                            lastName: '',
+                            code: res.code,
+                        })
+                        .save()
+                        .then(function (profile) {
+                            profile.addUsers(user).then(function () {
+                                var returnMessage = {
+                                    success: true,
+                                    code: res.code,
+                                    name: data.name,
+                                    email: data.email,
+                                };
+                                deffered.resolve(returnMessage);
+                            })
+                            .catch(function (error) {
+                                var returnMessage = {
+                                    success: false,
+                                    code: 400,
+                                    error: error,
+                                    table: 'profile_user',
+                                };
+                                deffered.reject(returnMessage);
+                            });
                         })
                         .catch(function (error) {
                             var returnMessage = {
                                 success: false,
                                 code: 400,
                                 error: error,
-                                table: 'profile_user',
+                                table: 'profile',
                             };
                             deffered.reject(returnMessage);
                         });
-                    })
-                    .catch(function (error) {
-                        var returnMessage = {
-                            success: false,
-                            code: 400,
-                            error: error,
-                            table: 'profile',
-                        };
-                        deffered.reject(returnMessage);
+                    },
+                    function (err) {
+                        deffered.reject(err);
                     });
-                },
-                function (err) {
-                    deffered.reject(err);
-                });
-        })
-        .catch(function (error) {
-            var returnMessage = {
+            })
+            .catch(function (error) {
+                var returnMessage = {
+                    success: false,
+                    code: 400,
+                    error: error,
+                    table: 'user',
+                };
+                deffered.reject(returnMessage);
+            });
+        } else {
+            returnMessage = {
                 success: false,
-                code: 400,
-                error: error,
+                length: true,
+                code: 500,
+                error: {
+                    message: 'Password security failed',
+                },
                 table: 'user',
             };
             deffered.reject(returnMessage);
-        });
+        }
+    });
+    
     return deffered.promise;
 };
 
@@ -229,6 +284,7 @@ UserProfile.prototype.getUserAccount = function (data) {
         var returnMessage = {
             success: false,
             length: true,
+            code: 400,
             error: {
                 message: 'Param code must have max length of 40',
             },
@@ -311,7 +367,6 @@ UserProfile.prototype.getUserAccount = function (data) {
  */
 UserProfile.prototype.getUserByEmail = function (data) {
     var deffered = q.defer();
-
     // Validation
     if (data.email.length > 200) {
         var returnMessage = {
@@ -425,35 +480,26 @@ UserProfile.prototype.validatePassword = function (data) {
     var User = app.get('models').User;
     User
     .findOne({
-        where: {email: data.email, password: data.password},
+        where: {email: data.email},
     })
     .then(function (user) {
-        var returnMessage = {};
         if (user !== null) {
-            var ProfileUser = app.get('models').ProfileUser;
-            ProfileUser
-            .findOne({
-                where: {user_id : user.id},
-            })
-            .then(function (profileUser) {
-                if (profileUser != null) {
-                    app.get('models').Profile
-                    .findOne({
-                        where: {id: profileUser.profile_id},
-                    })
+            hashCompare(data.password, user.password, function (err, isMatch){
+                if(!err && isMatch){
+                    data.password = hash;
+                    user.getProfiles()
                     .then(function (profile) {
-                        if (profile != null) {
-                            returnMessage = {
+                        if (profile !== null) {
+                            deffered.resolve({
                                 success: true,
-                                code: profile.code,
+                                code: profile[0].dataValues.code,
                                 email: user.email,
-                            };
-                            deffered.resolve(returnMessage);
+                            });
                         } else {
                             returnMessage = {
                                 success: false,
                                 code: 404,
-                                error: 'Profile not found',
+                                error: 'Could not fing profile',
                                 table: 'profile',
                             };
                             deffered.reject(returnMessage);
@@ -462,7 +508,7 @@ UserProfile.prototype.validatePassword = function (data) {
                     .catch(function (error) {
                         var returnMessage = {
                             success: false,
-                            code: 400,
+                            code: 500,
                             error: error,
                             table: 'profile',
                         };
@@ -471,23 +517,13 @@ UserProfile.prototype.validatePassword = function (data) {
                 } else {
                     returnMessage = {
                         success: false,
-                        code: 404,
-                        error: 'ProfileUser not found',
-                        table: 'profile_user',
+                        code: 400,
+                        error: 'Password does not match',
+                        table: 'user',
                     };
                     deffered.reject(returnMessage);
                 }
-            })
-            .catch(function (error) {
-                var returnMessage = {
-                    success: false,
-                    code: 400,
-                    error: error,
-                    table: 'profile_user',
-                };
-                deffered.reject(returnMessage);
             });
-            
         } else {
             returnMessage = {
                 success: false,
@@ -497,11 +533,10 @@ UserProfile.prototype.validatePassword = function (data) {
             };
             deffered.reject(returnMessage);
         }
-
     }).catch(function (error) {
         var returnMessage = {
             success: false,
-            code: 400,
+            code: 500,
             error: error,
             table: 'user',
         };
