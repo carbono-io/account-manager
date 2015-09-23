@@ -79,8 +79,7 @@ RequestHelper.prototype.createResponse = function (res, htmlCode, message) {
                     message: message,
                 });
             }
-            var teste = JSON.parse(cjm.toJSON());
-            res.json(teste);
+            res.json(cjm.toObject());
         }
         res.end();
     }
