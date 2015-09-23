@@ -1,6 +1,6 @@
 {
     "host": "127.0.0.1",
-    "port": 7888,
+    "port": 7889,
     "dbName": "carbono",
     "dbUsername": "root",
     "dbPassword": "",
