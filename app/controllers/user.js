@@ -20,10 +20,10 @@ module.exports = function (app) {
      * @param {Object} req - Request object
      * @param {Object} res - Response object
      *
-     * curl -X POST localhost:3000/account-manager/login -d
-     '{"apiVersion":"1.0", "id":"23123-123123123-12312", "data":{"id": "1234",
-     "items": [{"email": "email@email.com", "password": "shh~"}]}}'
-     --verbose -H "Content-Type: application/json"
+     * curl -X POST localhost:7888/account-manager/login/ -d
+     * '{"apiVersion":"1.0", "id":"23123-123123123-12312", "data":{"id":
+     * "1234","items": [{"email": "connor.john@resistance.com","password":
+     * "shh~"}]}}' --verbose -H "Content-Type: application/json"
      */
     this.login = function (req, res) {
         if (reqHelper.checkMessageStructure(req)) {
@@ -72,12 +72,12 @@ module.exports = function (app) {
      * Returns all user informations that will be available at oauth.
      *
      * @param {Object} req - Request object
+     * @param {string} req.headers.crbemail - The email of the user
      * @param {Object} res - Response object
      *
-     * curl -X POST localhost:3000/account-manager/user -d
-    '{"apiVersion":"1.0", "id":"23123-123123123-12312", "data":{"id": "1234",
-    "items": [{"email": "email@email.com"}]}}' --verbose
-    -H "Content-Type: application/json"
+     * curl localhost:7888/account-manager/users/
+     * * -H "Content-Type: application/json"
+     * -H "crbemail: connor.john@resistance.com"
      */
     this.userInfo = function (req, res) {
         if (req.headers.crbemail) {

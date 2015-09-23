@@ -1,22 +1,48 @@
-# IDE Mission control module
+# Account Manager Modile
 
 Description
 ===========
-Serves as an orchestrator and gateway between the app many user 
-interfaces and the development container. See Archtecture Specs for more
-details on MissionControl.
+This module provides data persistance in a relational database for user, profile and project data.
+
+Dependencies
+===========
+This module has the following dependencies:
+1. *MySQL*
+2. *ETCD module*
+3. *SQLite3* (for testing only)
 
 Installation and Running
 ============
+## Basic Install
 ```npm install```
-```node .```
+```gulp serve```
+
+## With Service Discovery
+You can easily use this module with service discovery if etcd (a service discovery)
+is running in your local machine:
+
+1. [Start etcd service](https://github.com/coreos/etcd/releases/)
+2. Set ETCD_SERVER as an environment variable, with the url where etcd is
+responding:
+    * `export ETCD_SERVER=localhost:2379`
+3. Clean any older record:
+    * `curl http://localhost:2379/v2/keys/backends/accm?recursive=true -XDELETE`
+4. Run `gulp serve`. It will listen at the port defined in `config` folder.
 
 Tests and Dev
 =============
 ```gulp test```
-*Hint:* You must have mysql installed. Default user for tests is root
-*Hint:* To run tests, you must have a etcd server running and also the mocks project
+*Hint:* You don't need any database for testing this module, as it uses sqlite,
+however, the test may fail sometimes because before the test, the sqlite database is mounted
+and it will depend on your OS/HardDrive speed to complete the operation. But usually it
+works in about 95% of all time.
+*Hint:* To run tests, you don't need to have the etcd server running
 
 Interfaces
 ==========
-** To Do ... **
+All routes begin with the module's name (`/account-manager`).
+You can find all the documentation on the docs (running the command ```gulp gendoc```) or
+in the swagger file.
+
+For a better visualization of the swagger.yaml files, you can use [Swagger
+online editor](http://editor.swagger.io/#/).

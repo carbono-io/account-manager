@@ -20,10 +20,11 @@ module.exports = function (app) {
      * @param {Object} req - Request object
      * @param {Object} res - Response object
      *
-     * curl example: curl -X POST localhost:7888/profiles/ -d '{
-     "apiVersion":"1.0", "id":"23123-123123123-12312", "data":{"id": "1234",
-     "items": [{"name": "Nome", "email": "email@email.com",
-     "password": "shh~"}]}}' --verbose -H "Content-Type: application/json"
+     * curl -X POST localhost:7888/account-manager/profiles/ -d
+     * '{"apiVersion":"1.0", "id":"23123-123123123-12312", "data":{"id":
+     * "1234","items": [{"name": "John Connor", "email":
+     * "connor.john@resistance.com","password": "shh~"}]}}'
+     * --verbose -H "Content-Type: application/json"
      */
     this.create = function (req, res) {
         if (reqHelper.checkMessageStructure(req)) {
@@ -75,9 +76,11 @@ module.exports = function (app) {
      * Returns an profile user based on a ID.
      *
      * @param {Object} req - Request object
+     * @param {string} req.params.code - The profile code
      * @param {Object} res - Response object
      *
-     * curl example: curl localhost:7888/profiles/123456 --verbose
+     * curl localhost:7888/account-manager/profiles/code
+     * --verbose -H "Content-Type: application/json"
      */
     this.get = function (req, res) {
         if (req.params && req.params.code) {

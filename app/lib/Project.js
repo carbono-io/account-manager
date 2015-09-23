@@ -3,6 +3,7 @@
 var q = require('q');
 var uuid = require('node-uuid');
 
+var app = null;
 /**
  * Slugifies the project name
  *
@@ -87,6 +88,7 @@ function findUnusedSafeName (cont, name, owner) {
         .catch(function (error) {
             var ret = {
                 success: false,
+                error: error,
             };
             deferred.resolve(ret);
         });
@@ -122,8 +124,6 @@ function generateSafeName (body, name, owner) {
     q.nextTick(loop);
     return deferred.promise;
 }
-var app = null;
-
 
 /**
  * Generates a new code that is not in the database
@@ -166,6 +166,7 @@ function findUnusedCode () {
         .catch(function (error) {
             var ret = {
                 success: false,
+                error: error,
             };
             deferred.resolve(ret);
         });
@@ -199,7 +200,150 @@ function generateCode (body) {
     q.nextTick(loop);
     return deferred.promise;
 }
-var app = null;
+
+
+/**
+ * Gets the profile id based on a user email
+ *
+ * @function
+ * 
+ * @returns {number} ret.profileId - The profile ID
+ * @returns {string} ret.profileCode - The profile code
+ * @returns {string} ret.code - The the code of the error
+ * @returns {string} ret.error - The error message
+ * @returns {string} ret.table - The table where the error occured
+ */
+var getProfileIdFromEmail = function (email) {
+    var deffered = q.defer();
+    app.get('models').User
+    .findOne({
+        where: {email: email}
+    })
+    .then(function (user) {
+        if (user !== null) {
+            user.getProfiles()
+            .then(function (profile) {
+                if (profile !== null) {
+                    deffered.resolve({
+                        profileId: profile[0].dataValues.id,
+                        profileCode: profile[0].dataValues.code,
+                    });
+                } else {
+                    deffered.reject({
+                        profileId: null,
+                        code: 404,
+                        error: 'Profile not found',
+                        table: 'profile',
+                    });
+                }
+            })
+            .catch(function (error) {
+                deffered.reject({
+                    profileId: null,
+                    code: 500,
+                    error: error,
+                    table: 'profile',
+                });
+            });
+        } else {
+            deffered.reject({
+                profileId: null,
+                code: 404,
+                error: 'User not found',
+                table: 'user',
+            });
+        }
+    })
+    .catch(function (error) {
+        deffered.reject({
+            profileId: null,
+            error: error,
+            code: 500,
+            table: 'user',
+        });
+    });
+    return deffered.promise;
+};
+
+/**
+ * Method that queries the projects based on the access
+ *
+ * @function
+ * @param {Array} projectAccess - List of projects and access
+ * @param {Array} response - The response Array
+ * @param {number} profile - The id of the profile
+ *
+ * @returns {Array} response - The response Array
+ * @returns {Object} returnMessage - Object with message
+ * @returns {boolean} returnMessage.sucess - Operation success
+ * @returns {Object} returnMessage.error - Error information
+ * @returns {string} returnMessage.table - Table in which the error
+ * occurred
+ */
+var queryProjects = function(projectAccess, response, profile) {
+    var deffered = q.defer();
+    var index = 0;
+    projectAccess.forEach(function (access) {
+        var projectId = access.project_id;
+        var access_level = access.access_type;
+        app.get('models').AccessLevel
+        .findOne({
+            where: {id: access_level},
+        })
+        .then(function (accessProj) {
+            if (accessProj !== null) {
+                var accessName = accessProj.name;
+                app.get('models').Project
+                .findOne({
+                    where: {id: projectId},
+                })
+                .then(function (resProject) {
+                    if (resProject !== null) {
+                        var owner = false;
+                        if (profile === resProject.owner) {
+                            owner = true;
+                        }
+                        var retProject = {
+                            project: {
+                                safeName: resProject.safeName,
+                                code: resProject.code,
+                                name: resProject.name,
+                                access: accessName,
+                                owner: owner,
+                                description:
+                                resProject.description,
+                            }
+                        };
+                        response.push(retProject);
+                    }
+                    index++;
+                    if (index === projectAccess.length) {
+                        deffered.resolve(response);
+                    }
+                })
+                .catch(function (error) {
+                    var returnMessage = {
+                        success: false,
+                        code: 500,
+                        error: error,
+                        table: 'project_access',
+                    };
+                    deffered.reject(returnMessage);
+                });
+            }
+        })
+        .catch(function (error) {
+            var returnMessage = {
+                success: false,
+                code: 500,
+                error: error,
+                table: 'project',
+            };
+            deffered.reject(returnMessage);
+        });
+    });
+    return deffered.promise;
+};
 
 /**
  * Class that handles Projects
@@ -329,7 +473,7 @@ Project.prototype.newProject = function (data) {
                                 deffered.reject(returnMessage);
                             }
                         })
-                        .catch(function (error) {
+                        .catch(function () {
                             // Try to generate a new safeName
                             generateCode(findUnusedCode).then(
                                 function (res) {
@@ -580,86 +724,6 @@ Project.prototype.getProjects = function (data) {
 };
 
 /**
- * Method that queries the projects based on the access
- *
- * @function
- * @param {Array} projectAccess - List of projects and access
- * @param {Array} response - The response Array
- * @param {number} profile - The id of the profile
- *
- * @returns {Array} response - The response Array
- * @returns {Object} returnMessage - Object with message
- * @returns {boolean} returnMessage.sucess - Operation success
- * @returns {Object} returnMessage.error - Error information
- * @returns {string} returnMessage.table - Table in which the error
- * occurred
- */
-var queryProjects = function(projectAccess, response, profile) {
-    var deffered = q.defer();
-    var index = 0;
-    projectAccess.forEach(function (access) {
-        var projectId = access.project_id;
-        var access_level = access.access_type;
-        app.get('models').AccessLevel
-        .findOne({
-            where: {id: access_level},
-        })
-        .then(function (accessProj) {
-            if (accessProj !== null) {
-                var accessName = accessProj.name;
-                app.get('models').Project
-                .findOne({
-                    where: {id: projectId},
-                })
-                .then(function (resProject) {
-                    if (resProject !== null) {
-                        var owner = false;
-                        if (profile === resProject.owner) {
-                            owner = true;
-                        }
-                        var retProject = {
-                            project: {
-                                safeName: resProject.safeName,
-                                code: resProject.code,
-                                name: resProject.name,
-                                access: accessName,
-                                owner: owner,
-                                description:
-                                resProject.description,
-                            }
-                        };
-                        response.push(retProject);
-                    }
-                    index++;
-                    if (index === projectAccess.length) {
-                        deffered.resolve(response);
-                    }
-                })
-                .catch(function (error) {
-                    var returnMessage = {
-                        success: false,
-                        code: 500,
-                        error: error,
-                        table: 'project_access',
-                    };
-                    deffered.reject(returnMessage);
-                });
-            }
-        })
-        .catch(function (error) {
-            var returnMessage = {
-                success: false,
-                code: 500,
-                error: error,
-                table: 'project',
-            };
-            deffered.reject(returnMessage);
-        });
-    });
-    return deffered.promise;
-};
-
-/**
  * Method that retrieves information from a project
  *
  * @function
@@ -713,8 +777,8 @@ Project.prototype.getProject = function (data) {
                 .then(function (project) {
                     if (project !== null) {
                         // If found project
-                        var owner = ((res.projectAccess === 'owner')
-                        ? true : false);
+                        var owner =
+                        ((res.projectAccess === 'owner') ? true : false);
                         var returnMessage = {
                             success: true,
                             code: project.code,
@@ -821,8 +885,8 @@ Project.prototype.updateProject = function (data) {
     }
     this.getProjectAccess(data.email, data.code).then(
         function (res) {
-            if (res.projectAccess !== null && res.projectAccess !== 'none'
-            || res.projectAccess !== 'read') {
+            if (res.projectAccess !== null && res.projectAccess !== 'none' &&
+            res.projectAccess !== 'read') {
                 app.get('models').Project
                     .findOne({
                         where: {
@@ -961,6 +1025,7 @@ Project.prototype.deleteProject = function (data) {
                     })
                     .then(function (project) {
                         if (project !== null) {
+                            data.safeName = project.safeName;
                             project.destroy()
                             .then(function (projectDestroy) {
                                 if (projectDestroy !== null) {
@@ -969,7 +1034,7 @@ Project.prototype.deleteProject = function (data) {
                                     .destroy({
                                         where: {project_id: project.id},
                                     })
-                                    .then(function (projAccess) {
+                                    .then(function () {
                                         // If access was destroyed, true
                                         var returnMessage = {
                                             success: true,
@@ -1095,7 +1160,7 @@ Project.prototype.getProjectAccess = function (email, code) {
                                     where: {id: access_level}
                                 })
                                 .then(function (access) {
-                                    if (access != null) {
+                                    if (access !== null) {
                                         deffered.resolve({
                                             projectAccess: access.name,
                                         });
@@ -1161,67 +1226,5 @@ Project.prototype.getProjectAccess = function (email, code) {
     return deffered.promise;
 };
 
-/**
- * Gets the profile id based on a user email
- *
- * @function
- * 
- * @returns {number} ret.profileId - The profile ID
- * @returns {string} ret.profileCode - The profile code
- * @returns {string} ret.code - The the code of the error
- * @returns {string} ret.error - The error message
- * @returns {string} ret.table - The table where the error occured
- */
-var getProfileIdFromEmail = function (email) {
-    var deffered = q.defer();
-    app.get('models').User
-    .findOne({
-        where: {email: email}
-    })
-    .then(function (user) {
-        if (user !== null) {
-            user.getProfiles()
-            .then(function (profile) {
-                if (profile !== null) {
-                    deffered.resolve({
-                        profileId: profile[0].dataValues.id,
-                        profileCode: profile[0].dataValues.code,
-                    });
-                } else {
-                    deffered.reject({
-                        profileId: null,
-                        code: 404,
-                        error: 'Profile not found',
-                        table: 'profile',
-                    });
-                }
-            })
-            .catch(function (error) {
-                deffered.reject({
-                    profileId: null,
-                    code: 500,
-                    error: error,
-                    table: 'profile',
-                });
-            });
-        } else {
-            deffered.reject({
-                profileId: null,
-                code: 404,
-                error: 'User not found',
-                table: 'user',
-            });
-        }
-    })
-    .catch(function (error) {
-        deffered.reject({
-            profileId: null,
-            error: error,
-            code: 500,
-            table: 'user',
-        });
-    });
-    return deffered.promise;
-};
 
 module.exports = Project;

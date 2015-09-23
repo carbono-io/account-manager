@@ -26,8 +26,8 @@ module.exports = function (app) {
      * curl -X POST localhost:7888/account-manager/projects/ -d
      * '{"apiVersion":"1.0", "id":"23123-123123123-12312", "data":{"id":
      * "1234", "items": [{"name": "Projeto 3",  "description": "Descricao"}]}}'
-     * --verbose -H "Content-Type: application/json" -H "crbemail:
-     * connor.john@resistance.com"
+     * --verbose -H "Content-Type: application/json"
+     * -H "crbemail: connor.john@resistance.com"
      */
     this.create = function (req, res) {
         if (req.headers.crbemail) {
@@ -70,7 +70,6 @@ module.exports = function (app) {
                             }
                         );
                     } catch (e) {
-                        console.log(e)
                         reqHelper.createResponse(res, 500, e);
                     }
                 }
@@ -89,7 +88,6 @@ module.exports = function (app) {
      *
      * @param {Object} req - Request object
      * @param {string} req.headers.crbemail - The owner of the project
-     * @param {string} req.params.code - The code of the project
      * @param {Object} res - Response object
      *
      * curl localhost:7888/account-manager/projects/ --verbose
@@ -114,7 +112,6 @@ module.exports = function (app) {
                     }
                 );
             } catch (e) {
-                console.log(e)
                 reqHelper.createResponse(res, 500, e);
             }
         } else {
@@ -181,8 +178,6 @@ module.exports = function (app) {
      * @param {Object} req - Request object
      * @param {string} req.headers.crbemail - The email of the owner
      * @param {string} req.params.code - The code of the project
-     * @param {string} req.name - Name of the project
-     * @param {string} req.description - Description of the project
      * @param {Object} res - Response object
      *
      * curl -X PUT localhost:7888/account-manager/projects/

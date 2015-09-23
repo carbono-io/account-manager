@@ -3,12 +3,6 @@
 var request = require('supertest');
 var should = require('chai').should();
 var cp = require('child_process');
-var sys = require('sys');
-var spawn = require('child_process').spawn;
-var changeNodeEnv = 'export NODE_ENV=test';
-var showNodeEnv = 'echo $NODE_ENV';
-var prepareSQLite = 'rm -rf carbono.sqlite | cp extra/db.sqlite carbono.sqlite';
-var cpSQLite = ''
 var cmdLine = 'rm -rf test/carbono.sqlite | cp test/extra/db.sqlite test/carbono.sqlite';
 
 var url = 'http://localhost:7888/account-manager';
@@ -691,134 +685,6 @@ describe('Routing tests --> ', function () {
                 });
         });
 
-        it('can list projects from a existing user with shared projects',
-        function (done) {
-            server
-                .get('/projects')
-                .set('crbemail', 'john.connor@resistance.com')
-                .end(function (err, res) {
-                    res.status.should.equal(200);
-                    should.not.exist(err);
-                    try {
-                        var jsonRes = JSON.parse(res.body);
-                        defaultResponse(jsonRes);
-                        jsonRes.data.items[0].should.have.property('project');
-                        jsonRes.data.items[0].project
-                        .should.have.property('code');
-                        jsonRes.data.items[0].project
-                        .should.have.property('safeName');
-                        jsonRes.data.items[0].project
-                        .should.have.property('name');
-                        jsonRes.data.items[0].project
-                        .should.have.property('description');
-                        jsonRes.data.items[0].project
-                        .should.have.property('access');
-                        jsonRes.data.items[0].project
-                        .should.have.property('owner');
-                    } catch (e) {
-                        return done(e);
-                    }
-                    done();
-                });
-        });
-
-        it('can list projects from a existing user without shared projects',
-        function (done) {
-            server
-                .get('/projects')
-                .set('crbemail', 'sarah.connor@resistance.com')
-                .end(function (err, res) {
-                    res.status.should.equal(200);
-                    should.not.exist(err);
-                    try {
-                        var jsonRes = JSON.parse(res.body);
-                        defaultResponse(jsonRes);
-                        jsonRes.data.items[0].should.have.property('project');
-                        jsonRes.data.items[0].project
-                        .should.have.property('code');
-                        jsonRes.data.items[0].project
-                        .should.have.property('safeName');
-                        jsonRes.data.items[0].project
-                        .should.have.property('name');
-                        jsonRes.data.items[0].project
-                        .should.have.property('description');
-                        jsonRes.data.items[0].project
-                        .should.have.property('access');
-                        jsonRes.data.items[0].project
-                        .should.have.property('owner');
-                    } catch (e) {
-                        return done(e);
-                    }
-                    done();
-                });
-        });
-
-        it('cannot list projects from a invalid user',
-        function (done) {
-            server
-                .get('/projects')
-                .set('crbemail', 'palhaco.pimpao@alegria.com')
-                .end(function (err, res) {
-                    res.status.should.equal(404);
-                    should.not.exist(err);
-                    try {
-                        var jsonRes = JSON.parse(res.body);
-                        defaultErrorResponse(jsonRes);
-                    } catch (e) {
-                        return done(e);
-                    }
-                    done();
-                });
-        });
-
-        it('cannot list projects from a email too big',
-        function (done) {
-            server
-                .get('/projects')
-                .set('crbemail', 'ooooooooooooooooooooooooooooooooooooooo' +
-                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
-                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
-                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
-                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
-                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
-                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
-                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
-                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
-                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
-                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
-                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
-                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
-                        'ooooooooooooooooooooooooooooooooooooooooooooooooo')
-                .end(function (err, res) {
-                    res.status.should.equal(400);
-                    should.not.exist(err);
-                    try {
-                        var jsonRes = JSON.parse(res.body);
-                        defaultErrorResponse(jsonRes);
-                    } catch (e) {
-                        return done(e);
-                    }
-                    done();
-                });
-        });
-
-        it('cannot list projects without email',
-        function (done) {
-            server
-                .get('/projects')
-                .end(function (err, res) {
-                    res.status.should.equal(400);
-                    should.not.exist(err);
-                    try {
-                        var jsonRes = JSON.parse(res.body);
-                        defaultErrorResponse(jsonRes);
-                    } catch (e) {
-                        return done(e);
-                    }
-                    done();
-                });
-        });
-
         it('can get a project from a valid code',
         function (done) {
             server
@@ -1044,248 +910,717 @@ describe('Routing tests --> ', function () {
                     done();
                 });
         });
-
-        // Put Delete projects com terminator e sarah
-    //     it('can get a existing project', function (done) {
-    //         server
-    //             .get('/projects/projeto-teste')
-    //             .expect(200)
-    //             .end(function (err, res) {
-                    
-    //                 should.not.exist(err);
-    //                 res.status.should.equal(200);
-    //                 try {
-    //                     var jsonResponse = JSON.parse(res.body);
-    //                     defaultResponse(jsonResponse);
-    //                     jsonResponse.data.should.have.property('items');
-    //                     jsonResponse.data.items[0].should.property('project');
-    //                     jsonResponse.data.items[0].project
-    //                     .should.property('safeName');
-    //                     jsonResponse.data.items[0].project
-    //                     .should.property('owner');
-    //                     jsonResponse.data.items[0].project
-    //                     .should.property('name');
-    //                 } catch (e) {
-    //                     return done(e);
-    //                 }
-    //                 done();
-    //             });
-    //     });
-
-    //     it('cannot get a non-existing project', function (done) {
-    //         server
-    //             .get('/projects/projeto-fake')
-    //             .expect(404)
-    //             .end(function (err, res) {
-                    
-    //                 should.not.exist(err);
-    //                 res.status.should.equal(404);
-    //                 done();
-    //             });
-    //     });
-
-    //     it('cannot get a project without safeName', function (done) {
-    //         server
-    //             .get('/projects/')
-    //             .expect(404)
-    //             .end(function (err, res) {
-                    
-    //                 should.not.exist(err);
-    //                 res.status.should.equal(404);
-    //                 done();
-    //             });
-    //     });
-
-    //     it('cannot get a project with safeName too big', function (done) {
-    //         server
-    //             .get('/projects/ooooooooooooooooooooooooooooooooooooooooo' +
-    //                     'oooooooooooooooooooooooooooooooooooooooooooooooo' +
-    //                     'oooooooooooooooooooooooooooooooooooooooooooooooo' +
-    //                     'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
-    //                     'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
-    //                     'ooooooooooooooooooooooooooooooooooooooooooooooooo')
-    //             .expect(400)
-    //             .end(function (err, res) {
-                    
-    //                 should.not.exist(err);
-    //                 res.status.should.equal(400);
-    //                 done();
-    //             });
-    //     });
-    // });
-    // describe('Project Routes: update and delete: ', function () {
-    //     it('can update an existing project', function (done) {
-    //         server
-    //             .put('/projects/projeto-teste')
-    //             .set('Accept', 'application/json')
-    //             .send(correctPostMessage({
-    //                     name: 'Projeto Teste Mudado',
-    //                     description: 'Descrição do projeto',
-    //                 }))
-    //             .expect(200)
-    //             .end(function (err, res) {
-                    
-    //                 should.not.exist(err);
-    //                 res.status.should.equal(200);
-    //                 done();
-    //             });
-    //     });
-
-    //     it('can update the name of an existing project', function (done) {
-    //         server
-    //             .put('/projects/projeto-teste')
-    //             .send(correctPostMessage({
-    //                     name: 'Projeto Teste Mudado',
-    //                 }))
-    //             .expect(200)
-    //             .end(function (err, res) {
-                    
-    //                 should.not.exist(err);
-    //                 res.status.should.equal(200);
-    //                 done();
-    //             });
-    //     });
-
-    //     it('can update the desc of an existing project', function (done) {
-    //         server
-    //             .put('/projects/projeto-teste')
-    //             .send(correctPostMessage({
-    //                     description: 'Descrição do projeto',
-    //                 }))
-    //             .expect(200)
-    //             .end(function (err, res) {
-                    
-    //                 should.not.exist(err);
-    //                 res.status.should.equal(200);
-    //                 done();
-    //             });
-    //     });
-
-    //     it('cant update project without params', function (done) {
-    //         server
-    //             .put('/projects/projeto-teste')
-    //             .send(correctPostMessage({
-    //                 }))
-    //             .expect(400)
-    //             .end(function (err, res) {
-                    
-    //                 should.not.exist(err);
-    //                 res.status.should.equal(400);
-    //                 done();
-    //             });
-    //     });
-
-    //     it('cant update an existing project with safeNametoo big',
-    //     function (done) {
-    //         server
-    //             .put('/projects/ooooooooooooooooooooooooooooooooooooooooo' +
-    //                     'oooooooooooooooooooooooooooooooooooooooooooooooo' +
-    //                     'oooooooooooooooooooooooooooooooooooooooooooooooo' +
-    //                     'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
-    //                     'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
-    //                     'ooooooooooooooooooooooooooooooooooooooooooooooooo')
-    //             .send(correctPostMessage({
-    //                     name: 'Projeto Teste Mudado',
-    //                     description: 'Descrição do projeto',
-    //                 }))
-    //             .expect(400)
-    //             .end(function (err, res) {
-                    
-    //                 should.not.exist(err);
-    //                 res.status.should.equal(400);
-    //                 done();
-    //             });
-    //     });
-
-    //     it('cant update a non-existing project', function (done) {
-    //         server
-    //             .put('/projects/projeto-fake')
-    //             .send(correctPostMessage({
-    //                     name: 'Projeto Teste Mudado',
-    //                     description: 'Descrição do projeto',
-    //                 }))
-    //             .expect(404)
-    //             .end(function (err, res) {
-                    
-    //                 should.not.exist(err);
-    //                 res.status.should.equal(404);
-    //                 done();
-    //             });
-    //     });
-
-    //     it('cant update a existing project with name too big',
-    //     function (done) {
-    //         server
-    //             .put('/projects/projeto-fake')
-    //             .send(correctPostMessage({
-    //                     name: 'ooooooooooooooooooooooooooooooooooooooooo' +
-    //                     'oooooooooooooooooooooooooooooooooooooooooooooooo' +
-    //                     'oooooooooooooooooooooooooooooooooooooooooooooooo' +
-    //                     'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
-    //                     'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
-    //                     'ooooooooooooooooooooooooooooooooooooooooooooooooo',
-    //                     description: 'Descrição do projeto',
-    //                 }))
-    //             .expect(400)
-    //             .end(function (err, res) {
-                    
-    //                 should.not.exist(err);
-    //                 res.status.should.equal(400);
-    //                 done();
-    //             });
-    //     });
-
-    //     it('cant delete a non-existing project', function (done) {
-    //         server
-    //             .delete('/projects/projeto-fake')
-    //             .expect(404)
-    //             .end(function (err, res) {
-                    
-    //                 should.not.exist(err);
-    //                 res.status.should.equal(404);
-    //                 done();
-    //             });
-    //     });
-
-    //     it('cant delete a project without safeName', function (done) {
-    //         server
-    //             .delete('/projects/')
-    //             .expect(404)
-    //             .end(function (err, res) {
-                    
-    //                 should.not.exist(err);
-    //                 res.status.should.equal(404);
-    //                 done();
-    //             });
-    //     });
-
-    //     it('cant delete a project with safeName too big', function (done) {
-    //         server
-    //             .delete('/projects/ooooooooooooooooooooooooooooooooooooooooo' +
-    //                     'oooooooooooooooooooooooooooooooooooooooooooooooo' +
-    //                     'oooooooooooooooooooooooooooooooooooooooooooooooo' +
-    //                     'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
-    //                     'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
-    //                     'ooooooooooooooooooooooooooooooooooooooooooooooooo')
-    //             .expect(400)
-    //             .end(function (err, res) {
-                    
-    //                 should.not.exist(err);
-    //                 res.status.should.equal(400);
-    //                 done();
-    //             });
-    //     });
-
-    //     it('can delete a existing project', function (done) {
-    //         server
-    //             .delete('/projects/projeto-teste')
-    //             .expect(200)
-    //             .end(function (err, res) {
-                    
-    //                 should.not.exist(err);
-    //                 res.status.should.equal(200);
-    //                 done();
-    //             });
-    //     });
     });
+    
+    describe('Project Routes: list projects', function () {
+        it('can list projects from a existing user with shared projects',
+        function (done) {
+            server
+                .get('/projects')
+                .set('crbemail', 'john.connor@resistance.com')
+                .end(function (err, res) {
+                    res.status.should.equal(200);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = JSON.parse(res.body);
+                        defaultResponse(jsonRes);
+                        jsonRes.data.items[0].should.have.property('project');
+                        jsonRes.data.items[0].project
+                        .should.have.property('code');
+                        jsonRes.data.items[0].project
+                        .should.have.property('safeName');
+                        jsonRes.data.items[0].project
+                        .should.have.property('name');
+                        jsonRes.data.items[0].project
+                        .should.have.property('description');
+                        jsonRes.data.items[0].project
+                        .should.have.property('access');
+                        jsonRes.data.items[0].project
+                        .should.have.property('owner');
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('can list projects from a existing user without shared projects',
+        function (done) {
+            server
+                .get('/projects')
+                .set('crbemail', 'sarah.connor@resistance.com')
+                .end(function (err, res) {
+                    res.status.should.equal(200);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = JSON.parse(res.body);
+                        defaultResponse(jsonRes);
+                        jsonRes.data.items[0].should.have.property('project');
+                        jsonRes.data.items[0].project
+                        .should.have.property('code');
+                        jsonRes.data.items[0].project
+                        .should.have.property('safeName');
+                        jsonRes.data.items[0].project
+                        .should.have.property('name');
+                        jsonRes.data.items[0].project
+                        .should.have.property('description');
+                        jsonRes.data.items[0].project
+                        .should.have.property('access');
+                        jsonRes.data.items[0].project
+                        .should.have.property('owner');
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot list projects from a invalid user',
+        function (done) {
+            server
+                .get('/projects')
+                .set('crbemail', 'palhaco.pimpao@alegria.com')
+                .end(function (err, res) {
+                    res.status.should.equal(404);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = JSON.parse(res.body);
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot list projects from a email too big',
+        function (done) {
+            server
+                .get('/projects')
+                .set('crbemail', 'ooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo')
+                .end(function (err, res) {
+                    res.status.should.equal(400);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = JSON.parse(res.body);
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot list projects without email',
+        function (done) {
+            server
+                .get('/projects')
+                .end(function (err, res) {
+                    res.status.should.equal(400);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = JSON.parse(res.body);
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+    });
+
+    describe('Project Routes: update: ', function () {
+        it('can update an existing project',
+        function (done) {
+            var name = 'I will be back';
+            var description = 'Wait in the line, I will be back soon';
+            server
+                .put('/projects/code7777')
+                .set('crbemail', 'terminator@skynet.com')
+                .send(correctPostMessage({
+                        name: name,
+                        description: description,
+                    }))
+                .end(function (err, res) {
+                    res.status.should.equal(201);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = JSON.parse(res.body);
+                        defaultResponse(jsonRes);
+                        jsonRes.data.items[0].should.have.property('project');
+                        jsonRes.data.items[0].project
+                        .should.have.property('code');
+                        jsonRes.data.items[0].project
+                        .should.have.property('safeName');
+                        jsonRes.data.items[0].project
+                        .should.have.property('name');
+                        jsonRes.data.items[0].project
+                        .should.have.property('description');
+                        jsonRes.data.items[0].project.name
+                        .should.to.equal(name);
+                        jsonRes.data.items[0].project.description
+                        .should.to.equal(description);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('can update an existing project with write access',
+        function (done) {
+            var name = 'Judgment Day';
+            var description = 'I can update Sarah Connors diary';
+            server
+                .put('/projects/code666')
+                .set('crbemail', 'john.connor@resistance.com')
+                .send(correctPostMessage({
+                        name: name,
+                        description: description,
+                    }))
+                .end(function (err, res) {
+                    res.status.should.equal(201);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = JSON.parse(res.body);
+                        defaultResponse(jsonRes);
+                        jsonRes.data.items[0].should.have.property('project');
+                        jsonRes.data.items[0].project
+                        .should.have.property('code');
+                        jsonRes.data.items[0].project
+                        .should.have.property('safeName');
+                        jsonRes.data.items[0].project
+                        .should.have.property('name');
+                        jsonRes.data.items[0].project
+                        .should.have.property('description');
+                        jsonRes.data.items[0].project.name
+                        .should.to.equal(name);
+                        jsonRes.data.items[0].project.description
+                        .should.to.equal(description);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot update an existing project with read access',
+        function (done) {
+            var name = 'Hasta luego, baby';
+            var description = 'I cannot update terminators project, only read';
+            server
+                .put('/projects/code888')
+                .set('crbemail', 'sarah.connor@resistance.com')
+                .send(correctPostMessage({
+                        name: name,
+                        description: description,
+                    }))
+                .end(function (err, res) {
+                    res.status.should.equal(403);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = JSON.parse(res.body);
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot update an existing project without access',
+        function (done) {
+            var name = 'How to kill robots';
+            var description = 'I cannot update my sons diary in the future';
+            server
+                .put('/projects/code333')
+                .set('crbemail', 'sarah.connor@resistance.com')
+                .send(correctPostMessage({
+                        name: name,
+                        description: description,
+                    }))
+                .end(function (err, res) {
+                    res.status.should.equal(403);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = JSON.parse(res.body);
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot update a non existing project',
+        function (done) {
+            var name = 'Rebuilding the world after SkyNet';
+            var description = 'I cannot update because the war is not over';
+            server
+                .put('/projects/codeEndWar')
+                .set('crbemail', 'john.connor@resistance.com')
+                .send(correctPostMessage({
+                        name: name,
+                        description: description,
+                    }))
+                .end(function (err, res) {
+                    res.status.should.equal(404);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = JSON.parse(res.body);
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot update an existing project with an invalid user',
+        function (done) {
+            var name = 'How to make a pie';
+            var description = 'The complete guide';
+            server
+                .put('/projects/code666')
+                .set('crbemail', 'palhaco.pimpao@alegria.com')
+                .send(correctPostMessage({
+                        name: name,
+                        description: description,
+                    }))
+                .end(function (err, res) {
+                    res.status.should.equal(404);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = JSON.parse(res.body);
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot update an existing project without a user',
+        function (done) {
+            var name = 'How to make a pie';
+            var description = 'The complete guide';
+            server
+                .put('/projects/code333')
+                .send(correctPostMessage({
+                        name: name,
+                        description: description,
+                    }))
+                .end(function (err, res) {
+                    res.status.should.equal(400);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = JSON.parse(res.body);
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot update an existing project without name',
+        function (done) {
+            var description = 'The complete guide';
+            server
+                .put('/projects/code333')
+                .set('crbemail', 'john.connor@resistance.com')
+                .send(correctPostMessage({
+                        description: description,
+                    }))
+                .end(function (err, res) {
+                    res.status.should.equal(400);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = JSON.parse(res.body);
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot update an existing project without description',
+        function (done) {
+            var name = 'How to save the world';
+            server
+                .put('/projects/code333')
+                .set('crbemail', 'john.connor@resistance.com')
+                .send(correctPostMessage({
+                        name: name,
+                    }))
+                .end(function (err, res) {
+                    res.status.should.equal(400);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = JSON.parse(res.body);
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot update an existing project with name too big',
+        function (done) {
+            var name = 'oooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo';
+            var description = 'Description';
+            server
+                .put('/projects/code333')
+                .set('crbemail', 'john.connor@resistance.com')
+                .send(correctPostMessage({
+                        name: name,
+                        description: description,
+                    }))
+                .end(function (err, res) {
+                    res.status.should.equal(400);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = JSON.parse(res.body);
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot update an existing project with code too big',
+        function (done) {
+            var name = 'Project Name';
+            var description = 'Description';
+            server
+                .put('/projects/oooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo')
+                .set('crbemail', 'john.connor@resistance.com')
+                .send(correctPostMessage({
+                        name: name,
+                        description: description,
+                    }))
+                .end(function (err, res) {
+                    res.status.should.equal(400);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = JSON.parse(res.body);
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot update an existing project with email too big',
+        function (done) {
+            var name = 'Project Name';
+            var description = 'Description';
+            server
+                .put('/projects/code333')
+                .set('crbemail', 'john.connor@oooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo')
+                .send(correctPostMessage({
+                        name: name,
+                        description: description,
+                    }))
+                .end(function (err, res) {
+                    res.status.should.equal(400);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = JSON.parse(res.body);
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('can update an existing project with access and big description',
+        function (done) {
+            var name = 'I will be back';
+            var description = 'oooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo';
+            server
+                .put('/projects/code7777')
+                .set('crbemail', 'terminator@skynet.com')
+                .send(correctPostMessage({
+                        name: name,
+                        description: description,
+                    }))
+                .end(function (err, res) {
+                    res.status.should.equal(201);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = JSON.parse(res.body);
+                        defaultResponse(jsonRes);
+                        jsonRes.data.items[0].should.have.property('project');
+                        jsonRes.data.items[0].project
+                        .should.have.property('code');
+                        jsonRes.data.items[0].project
+                        .should.have.property('safeName');
+                        jsonRes.data.items[0].project
+                        .should.have.property('name');
+                        jsonRes.data.items[0].project
+                        .should.have.property('description');
+                        jsonRes.data.items[0].project.name
+                        .should.to.equal(name);
+                        jsonRes.data.items[0].project.description
+                        .should.to.equal(description);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+    });
+
+    describe('Project Routes: delete: ', function () {
+        it('can delele an existing project with owner access',
+        function (done) {
+            server
+                .delete('/projects/code444')
+                .set('crbemail', 'john.connor@resistance.com')
+                .end(function (err, res) {
+                    res.status.should.equal(200);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = JSON.parse(res.body);
+                        defaultResponse(jsonRes);
+                        jsonRes.data.items[0].should.have.property('project');
+                        jsonRes.data.items[0].project
+                        .should.have.property('code');
+                        jsonRes.data.items[0].project
+                        .should.have.property('safeName');
+                        jsonRes.data.items[0].project
+                        .should.have.property('name');
+                        jsonRes.data.items[0].project
+                        .should.have.property('description');
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot delele an existing project with write access but not owner',
+        function (done) {
+            server
+                .delete('/projects/code666')
+                .set('crbemail', 'john.connor@resistance.com')
+                .end(function (err, res) {
+                    res.status.should.equal(403);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = JSON.parse(res.body);
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot delele an existing project with read access',
+        function (done) {
+            server
+                .delete('/projects/code555')
+                .set('crbemail', 'john.connor@resistance.com')
+                .end(function (err, res) {
+                    res.status.should.equal(403);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = JSON.parse(res.body);
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot delele an existing project without access',
+        function (done) {
+            server
+                .delete('/projects/code7777')
+                .set('crbemail', 'john.connor@resistance.com')
+                .end(function (err, res) {
+                    res.status.should.equal(403);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = JSON.parse(res.body);
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot delele a non-existing project',
+        function (done) {
+            server
+                .delete('/projects/codeFake')
+                .set('crbemail', 'sarah.connor@resistance.com')
+                .end(function (err, res) {
+                    res.status.should.equal(404);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = JSON.parse(res.body);
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot delele an existing project without email',
+        function (done) {
+            server
+                .delete('/projects/code555')
+                .end(function (err, res) {
+                    res.status.should.equal(400);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = JSON.parse(res.body);
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot delele an existing project with code too big',
+        function (done) {
+            server
+                .delete('/projects/oooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo')
+                .set('crbemail', 'sarah.connor@resistance.com')
+                .end(function (err, res) {
+                    res.status.should.equal(400);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = JSON.parse(res.body);
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot delele an existing project with email too big',
+        function (done) {
+            server
+                .delete('/projects/code555')
+                .set('crbemail', 'sarah.connor@ooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo')
+                .end(function (err, res) {
+                    res.status.should.equal(400);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = JSON.parse(res.body);
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+    });
+
 });

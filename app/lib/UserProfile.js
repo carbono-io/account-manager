@@ -85,6 +85,7 @@ function findCodeOnProfile () {
         .catch(function (error) {
             var ret = {
                 success: false,
+                error: error,
             };
             deferred.resolve(ret);
         });
@@ -299,7 +300,7 @@ UserProfile.prototype.getUserAccount = function (data) {
         where: {code: data.code},
     })
     .then(function (profile) {
-        if (profile != null) {
+        if (profile !== null) {
             profile.getUsers()
                 .then(function (ret) {
                     var returnMessage = {};

@@ -183,9 +183,9 @@ CREATE TABLE `project_access` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `project_access_access_type_project_id_profile_id_unique` (`project_id`,`access_type`,`profile_id`),
   KEY `access_type` (`access_type`),
-  CONSTRAINT `project_access_ibfk_1` FOREIGN KEY (`profile_id`) REFERENCES `profile` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `project_access_ibfk_2` FOREIGN KEY (`project_id`) REFERENCES `project` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `project_access_ibfk_3` FOREIGN KEY (`access_type`) REFERENCES `access_level` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `project_access_ibfk_1` FOREIGN KEY (`profile_id`) REFERENCES `profile` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `project_access_ibfk_2` FOREIGN KEY (`project_id`) REFERENCES `project` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `project_access_ibfk_3` FOREIGN KEY (`access_type`) REFERENCES `access_level` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT = 0 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

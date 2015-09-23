@@ -61,13 +61,11 @@ models.forEach(function (model) {
 
     // Foreign key of Profile
     m.Profile.belongsTo(m.AccountType, {
-        foreignKeyConstraint: true,
         foreignKey: 'account_id',
     });
 
     // Foreign key of Project
     m.Project.belongsTo(m.Profile, {
-        foreignKeyConstraint: true,
         foreignKey: 'owner',
     });
 }

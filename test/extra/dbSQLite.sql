@@ -45,7 +45,7 @@ CREATE TABLE project (
 	updated_at varchar(50) NOT NULL,
 	owner integer,
 	PRIMARY KEY (id),
-	FOREIGN KEY (owner) REFERENCES profile (id),
+	FOREIGN KEY (owner) REFERENCES profile (id) ON DELETE SET NULL,
 	UNIQUE(safe_name, owner)
 );
 CREATE TABLE project_access (
@@ -56,9 +56,9 @@ CREATE TABLE project_access (
 	project_id integer,
 	access_type integer,
 	PRIMARY KEY (id),
-	FOREIGN KEY (access_type) REFERENCES access_level (id),
-	FOREIGN KEY (project_id) REFERENCES project (id),
-	FOREIGN KEY (profile_id) REFERENCES profile (id)
+	FOREIGN KEY (access_type) REFERENCES access_level (id) ON DELETE SET NULL,
+	FOREIGN KEY (project_id) REFERENCES project (id) ON DELETE SET NULL,
+	FOREIGN KEY (profile_id) REFERENCES profile (id) ON DELETE SET NULL
 );
 
 CREATE TABLE user (
