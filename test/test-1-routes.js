@@ -86,7 +86,7 @@ describe('Routing tests --> ', function () {
                     should.not.exist(err);
                     res.status.should.equal(201);
                     try {
-                        var jsonResponse = JSON.parse(res.body);
+                        var jsonResponse = res.body;
                         defaultResponse(jsonResponse);
                         jsonResponse.data.items[0].should.have.property('profile');
                         jsonResponse.data.items[0].profile.should.have.property('code');
@@ -126,7 +126,7 @@ describe('Routing tests --> ', function () {
                     should.not.exist(err);
                     res.status.should.equal(400);
                     try {
-                        var jsonResponse = JSON.parse(res.body);
+                        var jsonResponse = res.body;
                         defaultErrorResponse(jsonResponse);
                     } catch (e) {
                         return done(e);
@@ -150,7 +150,7 @@ describe('Routing tests --> ', function () {
                     should.not.exist(err);
                     res.status.should.equal(400);
                     try {
-                        var jsonResponse = JSON.parse(res.body);
+                        var jsonResponse = res.body;
                         defaultErrorResponse(jsonResponse);
                     } catch (e) {
                         return done(e);
@@ -177,7 +177,7 @@ describe('Routing tests --> ', function () {
                     should.not.exist(err);
                     res.status.should.equal(400);
                     try {
-                        var jsonResponse = JSON.parse(res.body);
+                        var jsonResponse = res.body;
                         defaultErrorResponse(jsonResponse);
                     } catch (e) {
                         return done(e);
@@ -201,7 +201,7 @@ describe('Routing tests --> ', function () {
                     should.not.exist(err);
                     res.status.should.equal(400);
                     try {
-                        var jsonResponse = JSON.parse(res.body);
+                        var jsonResponse = res.body;
                         defaultErrorResponse(jsonResponse);
                     } catch (e) {
                         return done(e);
@@ -218,7 +218,7 @@ describe('Routing tests --> ', function () {
                     should.not.exist(err);
                     res.status.should.equal(200);
                     try {
-                        var jsonResponse = JSON.parse(res.body);
+                        var jsonResponse = res.body;
                         defaultResponse(jsonResponse);
                         jsonResponse.data.items[0].
                         should.have.property('profile');
@@ -242,7 +242,7 @@ describe('Routing tests --> ', function () {
                     should.not.exist(err);
                     res.status.should.equal(404);
                     try {
-                        var jsonResponse = JSON.parse(res.body);
+                        var jsonResponse = res.body;
                         defaultErrorResponse(jsonResponse);
                     } catch (e) {
                         return done(e);
@@ -259,7 +259,7 @@ describe('Routing tests --> ', function () {
                     should.not.exist(err);
                     res.status.should.equal(400);
                     try {
-                        var jsonResponse = JSON.parse(res.body);
+                        var jsonResponse = res.body;
                         defaultErrorResponse(jsonResponse);
                     } catch (e) {
                         return done(e);
@@ -276,7 +276,7 @@ describe('Routing tests --> ', function () {
                     should.not.exist(err);
                     res.status.should.equal(200);
                     try {
-                        var jsonResponse = JSON.parse(res.body);
+                        var jsonResponse = res.body;
                         defaultResponse(jsonResponse);
                         jsonResponse.data.items[0].
                         should.have.property('profile');
@@ -301,7 +301,7 @@ describe('Routing tests --> ', function () {
                     should.not.exist(err);
                     res.status.should.equal(404);
                     try {
-                        var jsonResponse = JSON.parse(res.body);
+                        var jsonResponse = res.body;
                         defaultErrorResponse(jsonResponse);
                     } catch (e) {
                         return done(e);
@@ -324,7 +324,7 @@ describe('Routing tests --> ', function () {
                     should.not.exist(err);
                     res.status.should.equal(400);
                     try {
-                        var jsonResponse = JSON.parse(res.body);
+                        var jsonResponse = res.body;
                         defaultErrorResponse(jsonResponse);
                     } catch (e) {
                         return done(e);
@@ -344,7 +344,7 @@ describe('Routing tests --> ', function () {
                     should.not.exist(err);
                     res.status.should.equal(200);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultResponse(jsonRes);
                         jsonRes.data.items[0].should.have.property('email');
                         jsonRes.data.items[0].should.have.property('code');
@@ -366,7 +366,7 @@ describe('Routing tests --> ', function () {
                     should.not.exist(err);
                     res.status.should.equal(404);
                     try {
-                        var jsonResponse = JSON.parse(res.body);
+                        var jsonResponse = res.body;
                         defaultErrorResponse(jsonResponse);
                     } catch (e) {
                         return done(e);
@@ -392,7 +392,7 @@ describe('Routing tests --> ', function () {
                     should.not.exist(err);
                     res.status.should.equal(400);
                     try {
-                        var jsonResponse = JSON.parse(res.body);
+                        var jsonResponse = res.body;
                         defaultErrorResponse(jsonResponse);
                     } catch (e) {
                         return done(e);
@@ -417,7 +417,7 @@ describe('Routing tests --> ', function () {
                     should.not.exist(err);
                     res.status.should.equal(400);
                     try {
-                        var jsonResponse = JSON.parse(res.body);
+                        var jsonResponse = res.body;
                         defaultErrorResponse(jsonResponse);
                     } catch (e) {
                         return done(e);
@@ -434,7 +434,7 @@ describe('Routing tests --> ', function () {
                     should.not.exist(err);
                     res.status.should.equal(400);
                     try {
-                        var jsonResponse = JSON.parse(res.body);
+                        var jsonResponse = res.body;
                         defaultErrorResponse(jsonResponse);
                     } catch (e) {
                         return done(e);
@@ -457,7 +457,7 @@ describe('Routing tests --> ', function () {
                     should.not.exist(err);
                     res.status.should.equal(201);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultResponse(jsonRes);
                         jsonRes.data.items[0].should.have.property('project');
                         jsonRes.data.items[0].project
@@ -488,7 +488,7 @@ describe('Routing tests --> ', function () {
                     should.not.exist(err);
                     res.status.should.equal(201);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultResponse(jsonRes);
                         jsonRes.data.items[0].should.have.property('project');
                         jsonRes.data.items[0].project
@@ -523,7 +523,7 @@ describe('Routing tests --> ', function () {
                     should.not.exist(err);
                     res.status.should.equal(400);
                     try {
-                        var jsonResponse = JSON.parse(res.body);
+                        var jsonResponse = res.body;
                         defaultErrorResponse(jsonResponse);
                     } catch (e) {
                         return done(e);
@@ -551,7 +551,7 @@ describe('Routing tests --> ', function () {
                     should.not.exist(err);
                     res.status.should.equal(400);
                     try {
-                        var jsonResponse = JSON.parse(res.body);
+                        var jsonResponse = res.body;
                         defaultErrorResponse(jsonResponse);
                     } catch (e) {
                         return done(e);
@@ -586,7 +586,7 @@ describe('Routing tests --> ', function () {
                     should.not.exist(err);
                     res.status.should.equal(201);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultResponse(jsonRes);
                         jsonRes.data.items[0].should.have.property('project');
                         jsonRes.data.items[0].project
@@ -615,7 +615,7 @@ describe('Routing tests --> ', function () {
                     should.not.exist(err);
                     res.status.should.equal(400);
                     try {
-                        var jsonResponse = JSON.parse(res.body);
+                        var jsonResponse = res.body;
                         defaultErrorResponse(jsonResponse);
                     } catch (e) {
                         return done(e);
@@ -635,7 +635,7 @@ describe('Routing tests --> ', function () {
                     should.not.exist(err);
                     res.status.should.equal(400);
                     try {
-                        var jsonResponse = JSON.parse(res.body);
+                        var jsonResponse = res.body;
                         defaultErrorResponse(jsonResponse);
                     } catch (e) {
                         return done(e);
@@ -655,7 +655,7 @@ describe('Routing tests --> ', function () {
                     should.not.exist(err);
                     res.status.should.equal(400);
                     try {
-                        var jsonResponse = JSON.parse(res.body);
+                        var jsonResponse = res.body;
                         defaultErrorResponse(jsonResponse);
                     } catch (e) {
                         return done(e);
@@ -676,7 +676,7 @@ describe('Routing tests --> ', function () {
                     should.not.exist(err);
                     res.status.should.equal(404);
                     try {
-                        var jsonResponse = JSON.parse(res.body);
+                        var jsonResponse = res.body;
                         defaultErrorResponse(jsonResponse);
                     } catch (e) {
                         return done(e);
@@ -694,7 +694,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(200);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultResponse(jsonRes);
                         jsonRes.data.items[0].should.have.property('project');
                         jsonRes.data.items[0].project
@@ -725,7 +725,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(200);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultResponse(jsonRes);
                         jsonRes.data.items[0].should.have.property('project');
                         jsonRes.data.items[0].project
@@ -756,7 +756,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(200);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultResponse(jsonRes);
                         jsonRes.data.items[0].should.have.property('project');
                         jsonRes.data.items[0].project
@@ -787,7 +787,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(403);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultErrorResponse(jsonRes);
                     } catch (e) {
                         return done(e);
@@ -805,7 +805,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(404);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultErrorResponse(jsonRes);
                     } catch (e) {
                         return done(e);
@@ -823,7 +823,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(404);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultErrorResponse(jsonRes);
                     } catch (e) {
                         return done(e);
@@ -840,7 +840,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(400);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultErrorResponse(jsonRes);
                     } catch (e) {
                         return done(e);
@@ -871,7 +871,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(400);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultErrorResponse(jsonRes);
                     } catch (e) {
                         return done(e);
@@ -902,7 +902,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(400);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultErrorResponse(jsonRes);
                     } catch (e) {
                         return done(e);
@@ -922,7 +922,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(200);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultResponse(jsonRes);
                         jsonRes.data.items[0].should.have.property('project');
                         jsonRes.data.items[0].project
@@ -953,7 +953,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(200);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultResponse(jsonRes);
                         jsonRes.data.items[0].should.have.property('project');
                         jsonRes.data.items[0].project
@@ -984,7 +984,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(404);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultErrorResponse(jsonRes);
                     } catch (e) {
                         return done(e);
@@ -1015,7 +1015,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(400);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultErrorResponse(jsonRes);
                     } catch (e) {
                         return done(e);
@@ -1032,7 +1032,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(400);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultErrorResponse(jsonRes);
                     } catch (e) {
                         return done(e);
@@ -1058,7 +1058,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(201);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultResponse(jsonRes);
                         jsonRes.data.items[0].should.have.property('project');
                         jsonRes.data.items[0].project
@@ -1095,7 +1095,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(201);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultResponse(jsonRes);
                         jsonRes.data.items[0].should.have.property('project');
                         jsonRes.data.items[0].project
@@ -1132,7 +1132,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(403);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultErrorResponse(jsonRes);
                     } catch (e) {
                         return done(e);
@@ -1156,7 +1156,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(403);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultErrorResponse(jsonRes);
                     } catch (e) {
                         return done(e);
@@ -1180,7 +1180,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(404);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultErrorResponse(jsonRes);
                     } catch (e) {
                         return done(e);
@@ -1204,7 +1204,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(404);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultErrorResponse(jsonRes);
                     } catch (e) {
                         return done(e);
@@ -1227,7 +1227,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(400);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultErrorResponse(jsonRes);
                     } catch (e) {
                         return done(e);
@@ -1249,7 +1249,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(400);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultErrorResponse(jsonRes);
                     } catch (e) {
                         return done(e);
@@ -1271,7 +1271,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(400);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultErrorResponse(jsonRes);
                     } catch (e) {
                         return done(e);
@@ -1308,7 +1308,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(400);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultErrorResponse(jsonRes);
                     } catch (e) {
                         return done(e);
@@ -1345,7 +1345,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(400);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultErrorResponse(jsonRes);
                     } catch (e) {
                         return done(e);
@@ -1382,7 +1382,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(400);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultErrorResponse(jsonRes);
                     } catch (e) {
                         return done(e);
@@ -1419,7 +1419,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(201);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultResponse(jsonRes);
                         jsonRes.data.items[0].should.have.property('project');
                         jsonRes.data.items[0].project
@@ -1452,7 +1452,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(200);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultResponse(jsonRes);
                         jsonRes.data.items[0].should.have.property('project');
                         jsonRes.data.items[0].project
@@ -1479,7 +1479,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(403);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultErrorResponse(jsonRes);
                     } catch (e) {
                         return done(e);
@@ -1497,7 +1497,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(403);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultErrorResponse(jsonRes);
                     } catch (e) {
                         return done(e);
@@ -1515,7 +1515,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(403);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultErrorResponse(jsonRes);
                     } catch (e) {
                         return done(e);
@@ -1533,7 +1533,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(404);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultErrorResponse(jsonRes);
                     } catch (e) {
                         return done(e);
@@ -1550,7 +1550,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(400);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultErrorResponse(jsonRes);
                     } catch (e) {
                         return done(e);
@@ -1581,7 +1581,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(400);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultErrorResponse(jsonRes);
                     } catch (e) {
                         return done(e);
@@ -1612,7 +1612,7 @@ describe('Routing tests --> ', function () {
                     res.status.should.equal(400);
                     should.not.exist(err);
                     try {
-                        var jsonRes = JSON.parse(res.body);
+                        var jsonRes = res.body;
                         defaultErrorResponse(jsonRes);
                     } catch (e) {
                         return done(e);
