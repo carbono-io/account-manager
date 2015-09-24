@@ -7,6 +7,7 @@ This module provides data persistence in a relational database for user, profile
 Dependencies
 ===========
 This module has the following dependencies:
+
 1. *MySQL*
 
 2. *ETCD module*
