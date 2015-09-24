@@ -1,21 +1,24 @@
-# Account Manager Modile
+# Account Manager Module
 
 Description
 ===========
-This module provides data persistance in a relational database for user, profile and project data.
+This module provides data persistence in a relational database for user, profile and project data.
 
 Dependencies
 ===========
 This module has the following dependencies:
 1. *MySQL*
+
 2. *ETCD module*
+
 3. *SQLite3* (for testing only)
 
 Installation and Running
 ============
 ## Basic Install
 ```npm install```
-```gulp serve```
+
+```node .```
 
 ## With Service Discovery
 You can easily use this module with service discovery if etcd (a service discovery)
@@ -32,10 +35,9 @@ responding:
 Tests and Dev
 =============
 ```gulp test```
-*Hint:* You don't need any database for testing this module, as it uses sqlite,
-however, the test may fail sometimes because before the test, the sqlite database is mounted
-and it will depend on your OS/HardDrive speed to complete the operation. But usually it
-works in about 95% of all time.
+
+*Hint:* You don't need any database for testing this module, as it uses sqlite.
+
 *Hint:* To run tests, you don't need to have the etcd server running
 
 Interfaces

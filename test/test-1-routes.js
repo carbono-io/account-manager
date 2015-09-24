@@ -49,28 +49,29 @@ function getCreatedProfileCode () {
 var serverObj;
 
 describe('Routing tests --> ', function () {
-    before(function () {    
+    before(function (done) {    
 
         function puts(error, stdout, stderr) {
             if (error !== null) {
                 console.log('CL Error -- ' + error, stdout, stderr);
             }
+            serverObj = require('../');
+            done();
         }
         process.env.NODE_ENV = 'test';
         cp.exec(cmdLine, puts);
-
-        serverObj = require('../');
     });
 
-    after(function () {
+    after(function (done) {
         function puts(error, stdout, stderr) {
             if (error !== null) {
                 console.log('CL Error -- ' + error, stdout, stderr);
             }
+            serverObj.close();
+            done();
         }
         process.env.NODE_ENV = 'default';
         cp.exec(cmdLine, puts);
-        serverObj.close();
     });
 
     describe('Basic routes - This test should work when:', function () {
