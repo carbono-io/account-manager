@@ -16,6 +16,11 @@ module.exports = function (sequelize, DataTypes) {
             type: DataTypes.STRING(80),
             allowNull: true,
             field: 'safe_name',
+        },
+        code: {
+            type: DataTypes.STRING(40),
+            allowNull: true,
+            field: 'code',
             unique: true,
         },
         description: {

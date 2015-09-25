@@ -16,6 +16,7 @@ var sequelize = new Sequelize(config.get('dbName'),
     config.get('dbUsername'), config.get('dbPassword'), {
         host: config.get('dbHost'),
         dialect: config.get('dbDialect'),
+        
 
         pool: {
             max: 5,
@@ -60,40 +61,15 @@ models.forEach(function (model) {
 
     // Foreign key of Profile
     m.Profile.belongsTo(m.AccountType, {
-        foreignKeyConstraint: true,
         foreignKey: 'account_id',
     });
 
     // Foreign key of Project
     m.Project.belongsTo(m.Profile, {
-        foreignKeyConstraint: true,
         foreignKey: 'owner',
     });
-
-    // Creates the association of project_acess
-    m.Profile.belongsToMany(m.Project, {
-        through: 'project_access',
-    });
-
-    m.Profile.belongsToMany(m.AccessLevel, {
-        through: 'project_access',
-    });
-
-    m.Project.belongsToMany(m.Profile, {
-        through: 'project_access',
-    });
-
-    m.AccessLevel.belongsToMany(m.Profile, {
-        through: 'project_access',
-        foreignKey: 'access_type',
-    });
-
-    m.AccessLevel.belongsToMany(m.Project, {
-        through: 'project_access',
-        foreignKey: 'access_type',
-    });
-
 }
 )(module.exports);
 
+// sequelize.sync({force:true})
 module.exports.sequelize = sequelize;
