@@ -27,7 +27,6 @@ RequestHelper.prototype.checkMessageStructure = function (message) {
         message.body.hasOwnProperty('data') &&
         message.body.data.hasOwnProperty('id') &&
         message.body.data.hasOwnProperty('items') &&
-        message.body.apiVersion === '1.0' &&
         message.body.data.items.length > 0;
 };
 
