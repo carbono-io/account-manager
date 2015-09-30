@@ -518,7 +518,7 @@ UserProfile.prototype.validatePassword = function (data) {
                 } else {
                     returnMessage = {
                         success: false,
-                        code: 400,
+                        code: 404,
                         error: 'Password does not match',
                         table: 'user',
                     };
