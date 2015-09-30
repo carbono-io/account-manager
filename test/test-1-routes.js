@@ -3,7 +3,7 @@
 var request = require('supertest');
 var should = require('chai').should();
 var cp = require('child_process');
-var cmdLine = 'rm -rf test/carbono.sqlite | cp test/extra/db.sqlite test/carbono.sqlite';
+var cmdLine = 'cp test/extra/db.sqlite test/carbono.sqlite';
 
 var url = 'http://localhost:7888/account-manager';
 
@@ -50,7 +50,7 @@ var serverObj;
 
 describe('Routing tests --> ', function () {
     before(function (done) {    
-
+        this.timeout(5000);
         function puts(error, stdout, stderr) {
             if (error !== null) {
                 console.log('CL Error -- ' + error, stdout, stderr);

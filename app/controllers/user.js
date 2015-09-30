@@ -52,13 +52,13 @@ module.exports = function (app) {
                                     },
                                 ],
                             };
-                        reqHelper.createResponse(res, 200, data);
-                            reqHelper.createResponse(res, 200);
-                        },
-                        function (err) {
-                            reqHelper.createResponse(res, err.code,
-                            [err.table, err.error].join(' - '));
-                        });
+                            reqHelper.createResponse(res, 200, data);
+                        }).catch(
+                            function (err) {
+                                reqHelper.createResponse(res, err.code,
+                                [err.table, err.error].join(' - '));
+                            }
+                        );
                 } catch (e) {
                     reqHelper.createResponse(res, 500, e);
                 }
@@ -100,12 +100,12 @@ module.exports = function (app) {
                             ],
                         };
                         reqHelper.createResponse(res, 200, data);
-                    },
-                    function (err) {
-                        reqHelper.createResponse(res, err.code,
+                    }).catch(
+                        function (err) {
+                            reqHelper.createResponse(res, err.code,
                             [err.table, err.error].join(' - '));
-                    }
-                );
+                        }
+                    );
             } catch (e) {
                 reqHelper.createResponse(res, 500, e);
             }

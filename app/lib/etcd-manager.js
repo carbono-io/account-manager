@@ -33,7 +33,7 @@ function register(serviceManager, service, path) {
     promise.then(
         function () {
             console.log(service + ' submodule registered');
-        }, function (err) {
+        }).catch(function (err) {
             console.log('[ERROR] Registering ' + service +
                 ' with etcd: ' + err);
         });
@@ -47,28 +47,37 @@ function register(serviceManager, service, path) {
  * @function
  */
 function registerAll() {
-    if (process.env.ETCD_SERVER) {
-        var serviceManager = new ServiceManager(process.env.ETCD_SERVER);
+    try {
+        if (process.env.ETCD_SERVER) {
+            var serviceManager = new ServiceManager(process.env.ETCD_SERVER);
 
-        var basePath = url.format({
-            protocol: 'http',
-            hostname: config.get('host'),
-            port: config.get('port'),
-        });
+            var basePath = url.format({
+                protocol: 'http',
+                hostname: config.get('host'),
+                port: config.get('port'),
+            });
 
-        return Q.all([
-            register(serviceManager, ACCM_SERVICE_KEY,
-                    url.resolve(basePath, PATH_ACCOUNT_MANAGER)),
-        ]);
-
-    } else {
-        console.log(
+            return Q.all([
+                register(serviceManager, ACCM_SERVICE_KEY,
+                        url.resolve(basePath, PATH_ACCOUNT_MANAGER)),
+            ]);
+        } else {
+            console.log(
             'The environment variable ETCD_SERVER is not defined!'.bold.red);
-        console.log('Please, define it before continuing, otherwise the'.red);
-        console.log('integration will not work!'.red);
-        console.log();
+            console.log(
+            'Please, define it before continuing, otherwise the'.red);
+            console.log('integration will not work!'.red);
+            console.log();
+            return null;
+        }
+    } catch (e) {
+        console.log('Error while registering submodules at etcd.'
+            .bold.red);
+        console.log('They may not work correctly with other services.'
+            .red);
         return null;
     }
+    
 }
 
 /**
@@ -84,7 +93,7 @@ EtcdManager.prototype.init = function () {
             function () {
                 console.log('Everything was correctly registered at etcd.'
                     .green);
-            }, function () {
+            }).catch(function () {
                 console.log('Error while registering submodules at etcd.'
                     .bold.red);
                 console.log('They may not work correctly with other services.'
