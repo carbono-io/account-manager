@@ -20,10 +20,10 @@ module.exports = function (app) {
      * @param {Object} req - Request object
      * @param {Object} res - Response object
      *
-     * curl -X POST localhost:3000/account-manager/login -d
-     '{"apiVersion":"1.0", "id":"23123-123123123-12312", "data":{"id": "1234",
-     "items": [{"email": "email@email.com", "password": "shh~"}]}}'
-     --verbose -H "Content-Type: application/json"
+     * curl -X POST localhost:7888/account-manager/login/ -d
+     * '{"apiVersion":"1.0", "id":"23123-123123123-12312", "data":{"id":
+     * "1234","items": [{"email": "connor.john@resistance.com","password":
+     * "shh~"}]}}' --verbose -H "Content-Type: application/json"
      */
     this.login = function (req, res) {
         if (reqHelper.checkMessageStructure(req)) {
@@ -32,27 +32,35 @@ module.exports = function (app) {
                 reqHelper.checkRequiredData(userData, ['email', 'password']);
 
             if (missingProperties.length) {
+                var errMessage = '';
                 missingProperties.forEach(function (prop) {
-                    reqHelper.createResponse(res, 400,
-                        'Malformed request: ' + prop + ' is required.');
+                    errMessage += 'Malformed request: ' + prop +
+                     ' is required.\n';
+
                 });
+                reqHelper.createResponse(res, 400, errMessage);
             } else {
                 try {
                     userProfile.validatePassword(userData).then(
-                        function () {
-                            reqHelper.createResponse(res, 200);
-                        },
-                        function (err) {
-                            if (err.length) {
-                                reqHelper.createResponse(res, 400,
-                                [err.table, err.error].join(' - '));
-                            } else {
-                                reqHelper.createResponse(res, 404,
+                        function (result) {
+                            var data = {
+                                id: uuid.v4(),
+                                items: [
+                                    {
+                                        code: result.code,
+                                        email: result.email,
+                                    },
+                                ],
+                            };
+                            reqHelper.createResponse(res, 200, data);
+                        }).catch(
+                            function (err) {
+                                reqHelper.createResponse(res, err.code,
                                 [err.table, err.error].join(' - '));
                             }
-                        });
+                        );
                 } catch (e) {
-                    reqHelper.createResponse(res, 400, e);
+                    reqHelper.createResponse(res, 500, e);
                 }
             }
         } else {
@@ -60,60 +68,50 @@ module.exports = function (app) {
         }
     };
 
-    
-
     /**
      * Returns all user informations that will be available at oauth.
      *
      * @param {Object} req - Request object
+     * @param {string} req.headers.crbemail - The email of the user
      * @param {Object} res - Response object
      *
-     * curl -X POST localhost:3000/account-manager/userInfo -d
-    '{"apiVersion":"1.0", "id":"23123-123123123-12312", "data":{"id": "1234",
-    "items": [{"email": "email@email.com"}]}}' --verbose
-    -H "Content-Type: application/json"
+     * curl localhost:7888/account-manager/users/
+     * * -H "Content-Type: application/json"
+     * -H "crbemail: connor.john@resistance.com"
      */
-    this.getUserInfo = function (req, res) {
-        if (reqHelper.checkMessageStructure(req)) {
-            var userData = req.body.data.items[0];
-            if (userData.hasOwnProperty('email')) {
-                try {
-                    userProfile.getUserByEmail(userData).then(
-                        function (result) {
-                            var data = {
-                                id: uuid.v4(),
-                                items: [
-                                    {
-                                        profile: {
-                                            code: result.code,
-                                            name: result.name,
-                                            email: result.email,
-                                            password: result.password,
-                                        },
+    this.userInfo = function (req, res) {
+        if (req.headers.crbemail) {
+            var userData = {
+                email: req.headers.crbemail,
+            };
+            try {
+                userProfile.getUserByEmail(userData).then(
+                    function (result) {
+                        var data = {
+                            id: uuid.v4(),
+                            items: [
+                                {
+                                    profile: {
+                                        code: result.code,
+                                        name: result.name,
+                                        email: result.email,
                                     },
-                                ],
-                            };
-                            reqHelper.createResponse(res, 200, data);
-                        },
+                                },
+                            ],
+                        };
+                        reqHelper.createResponse(res, 200, data);
+                    }).catch(
                         function (err) {
-                            if (err.length) {
-                                reqHelper.createResponse(res, 400,
-                                [err.table, err.error].join(' - '));
-                            } else {
-                                reqHelper.createResponse(res, 404,
-                                [err.table, err.error].join(' - '));
-                            }
+                            reqHelper.createResponse(res, err.code,
+                            [err.table, err.error].join(' - '));
                         }
                     );
-                } catch (e) {
-                    reqHelper.createResponse(res, 400, e);
-                }
-            } else {
-                reqHelper.createResponse(res, 400,
-                'Malformed request - Must have email or password');
+            } catch (e) {
+                reqHelper.createResponse(res, 500, e);
             }
         } else {
-            reqHelper.createResponse(res, 400, 'Malformed request');
+             reqHelper.createResponse(res, 400,
+                'Malformed request - Header attribute cbrEmail not found!');
         }
     };
 

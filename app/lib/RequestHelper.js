@@ -27,7 +27,6 @@ RequestHelper.prototype.checkMessageStructure = function (message) {
         message.body.hasOwnProperty('data') &&
         message.body.data.hasOwnProperty('id') &&
         message.body.data.hasOwnProperty('items') &&
-        message.body.apiVersion === '1.0' &&
         message.body.data.items.length > 0;
 };
 
@@ -71,7 +70,7 @@ RequestHelper.prototype.createResponse = function (res, htmlCode, message) {
 
         if (message) {
             var cjm = new CJM({apiVersion: '1.0'});
-            if (htmlCode === 200) {
+            if (htmlCode < 400) {
                 cjm.setData(message);
             } else {
                 cjm.setError({
@@ -79,7 +78,7 @@ RequestHelper.prototype.createResponse = function (res, htmlCode, message) {
                     message: message,
                 });
             }
-            res.json(cjm);
+            res.json(cjm.toObject());
         }
         res.end();
     }

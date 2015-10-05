@@ -15,7 +15,9 @@
   "dependencies": {
     "bcrypt-nodejs": "0.0.3",
     "body-parser": "^1.13.3",
-    "carbono-json-messages": "0.0.1",
+    "carbono-json-messages": "0.0.2",
+    "carbono-service-manager": "0.0.7",
+    "colors": "^1.1.2",
     "config": "^1.16.0",
     "consign": "^0.1.2",
     "express": "^4.13.3",
@@ -31,7 +33,9 @@
     "sequelize": "^3.7.1",
     "should": "^7.1.0",
     "sqlite3": "^3.1.0",
-    "supertest": "^1.1.0"
+    "supertest": "^1.1.0",
+    "sys": "0.0.1",
+    "underscore": "^1.8.3"
   },
   "devDependencies": {
     "chai": "3.2.0",

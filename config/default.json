@@ -6,5 +6,12 @@
     "dbPassword": "",
     "dbHost": "localhost",
     "dbDialect": "mysql",
-    "dbPath": ""
+    "dbPath": "",
+    "etcd": {
+        "host": "127.0.0.1",
+        "port": 7689,
+        "key" : "accm",
+        "alias" : "Carbono Account Manager",
+        "namespace" : "/account-manager/"
+    }
 }

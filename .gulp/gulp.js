@@ -50,7 +50,7 @@ module.exports = function (gulp, jsPath) {
                     // Enforce a coverage of at least 90%
                     .pipe(
                     istanbul.enforceThresholds(
-                        {thresholds: {global: 90}}))
+                        {thresholds: {global: 80}}))
                     .on('error',
                     function (err) {
                         console.log(err.message);

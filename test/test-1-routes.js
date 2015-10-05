@@ -1,6 +1,9 @@
 'use strict';
+
 var request = require('supertest');
 var should = require('chai').should();
+var cp = require('child_process');
+var cmdLine = 'cp test/extra/db.sqlite test/carbono.sqlite';
 
 var url = 'http://localhost:7888/account-manager';
 
@@ -34,22 +37,41 @@ function correctPostMessage(info) {
             },
         };
 }
+var profileCode = null;
+function setCreatedProfileCode (code) {
+    profileCode = code;   
+}
+
+function getCreatedProfileCode () {
+    return profileCode;   
+}
 
 var serverObj;
 
 describe('Routing tests --> ', function () {
-    before(function () {
-        // Starting Server
-        serverObj = require('../');
+    before(function (done) {    
+        this.timeout(5000);
+        function puts(error, stdout, stderr) {
+            if (error !== null) {
+                console.log('CL Error -- ' + error, stdout, stderr);
+            }
+            serverObj = require('../');
+            done();
+        }
+        process.env.NODE_ENV = 'test';
+        cp.exec(cmdLine, puts);
     });
 
-    after(function () {
-        // Closing Server
-        var sequelize = require('../app/models/index.js');
-        var promise = sequelize.sequelize.sync({force: true});
-        promise.then(function () {
+    after(function (done) {
+        function puts(error, stdout, stderr) {
+            if (error !== null) {
+                console.log('CL Error -- ' + error, stdout, stderr);
+            }
             serverObj.close();
-        });
+            done();
+        }
+        process.env.NODE_ENV = 'default';
+        cp.exec(cmdLine, puts);
     });
 
     describe('Basic routes - This test should work when:', function () {
@@ -58,18 +80,23 @@ describe('Routing tests --> ', function () {
                 .post('/profiles')
                 .send(correctPostMessage({
                         name: 'Paulo Cesar',
-                        code: '00122eee',
-                        email: 'email1@email.com',
+                        email: 'email@email.com',
                         password: 'senha123',
                     }))
-                .expect(200)
                 .end(function (err, res) {
-
-                    if (err) {
-                        return done(err);
-                    }
                     should.not.exist(err);
-                    res.status.should.equal(200);
+                    res.status.should.equal(201);
+                    try {
+                        var jsonResponse = res.body;
+                        defaultResponse(jsonResponse);
+                        jsonResponse.data.items[0].should.have.property('profile');
+                        jsonResponse.data.items[0].profile.should.have.property('code');
+                        setCreatedProfileCode(jsonResponse.data.items[0].profile.code);
+                        jsonResponse.data.items[0].profile.should.have.property('name');
+                        jsonResponse.data.items[0].profile.should.have.property('email');
+                    } catch (e) {
+                        return done(e);
+                    }
                     done();
                 });
         });
@@ -78,65 +105,29 @@ describe('Routing tests --> ', function () {
             server
                 .post('/profiles')
                 .send(correctPostMessage({
-                        code: '00122eee',
                         email: 'email1@email.com',
                         password: 'senha123',
                     }))
-                .expect(400)
                 .end(function (err, res) {
-
-                    if (err) {
-                        return done(err);
-                    }
                     should.not.exist(err);
                     res.status.should.equal(400);
                     done();
                 });
         });
 
-        it('cannot create a new profile with the same code', function (done) {
-            server
-                .post('/profiles')
-                .send(correctPostMessage({
-                        name: 'Paulo1 Cesar',
-                        code: '00122eee',
-                        email: 'diferente@email.com',
-                        password: 'senha123',
-                    }))
-                .expect(400)
-                .end(function (err, res) {
-                    if (err) {
-                        return done(err);
-                    }
-                    should.not.exist(err);
-                    res.status.should.equal(400);
-                    try {
-                        var jsonResponse = JSON.parse(res.body);
-                        defaultErrorResponse(jsonResponse);
-                    } catch (e) {
-                        return done(e);
-                    }
-                    done();
-                });
-        });
         it('cannot create a new profile with the same email', function (done) {
             server
                 .post('/profiles')
                 .send(correctPostMessage({
                         name: 'Paulo2 Cesar',
-                        code: '007700',
-                        email: 'email1@email.com',
+                        email: 'email@email.com',
                         password: 'senha123',
                     }))
-                .expect(400)
                 .end(function (err, res) {
-                    if (err) {
-                        return done(err);
-                    }
                     should.not.exist(err);
                     res.status.should.equal(400);
                     try {
-                        var jsonResponse = JSON.parse(res.body);
+                        var jsonResponse = res.body;
                         defaultErrorResponse(jsonResponse);
                     } catch (e) {
                         return done(e);
@@ -153,46 +144,14 @@ describe('Routing tests --> ', function () {
                         ' nanme name example error nanme name example error' +
                         ' nanme name example error nanme name example error' +
                         ' nanme ashjash',
-                        code: 'other',
                         email: 'another@email.com',
                         password: 'senha123',
                     }))
-                .expect(400)
                 .end(function (err, res) {
-                    if (err) {
-                        return done(err);
-                    }
                     should.not.exist(err);
                     res.status.should.equal(400);
                     try {
-                        var jsonResponse = JSON.parse(res.body);
-                        defaultErrorResponse(jsonResponse);
-                    } catch (e) {
-                        return done(e);
-                    }
-                    done();
-                });
-        });
-
-        it('cannot create a new profile with code too big', function (done) {
-            server
-                .post('/profiles')
-                .send(correctPostMessage({
-                        name: 'name',
-                        code: 'ooooooooooooooooooooooooooooooooooooooooooooo' +
-                        'oooooooooooo00000ooooooooooooo',
-                        email: 'another@email.com',
-                        password: 'senha123',
-                    }))
-                .expect(400)
-                .end(function (err, res) {
-                    if (err) {
-                        return done(err);
-                    }
-                    should.not.exist(err);
-                    res.status.should.equal(400);
-                    try {
-                        var jsonResponse = JSON.parse(res.body);
+                        var jsonResponse = res.body;
                         defaultErrorResponse(jsonResponse);
                     } catch (e) {
                         return done(e);
@@ -206,7 +165,6 @@ describe('Routing tests --> ', function () {
                 .post('/profiles')
                 .send(correctPostMessage({
                         name: 'name',
-                        code: 'oooo',
                         email: 'oooooooooooooooooooooooooooooooooooooooooooo' +
                         'oooooooooooooooooooooooooooooooooooooooooooooooo' +
                         'oooooooooooooooooooooooooooooooooooooooooooooooo' +
@@ -216,15 +174,11 @@ describe('Routing tests --> ', function () {
                         'o@email.com',
                         password: 'senha123',
                     }))
-                .expect(400)
                 .end(function (err, res) {
-                    if (err) {
-                        return done(err);
-                    }
                     should.not.exist(err);
                     res.status.should.equal(400);
                     try {
-                        var jsonResponse = JSON.parse(res.body);
+                        var jsonResponse = res.body;
                         defaultErrorResponse(jsonResponse);
                     } catch (e) {
                         return done(e);
@@ -239,21 +193,16 @@ describe('Routing tests --> ', function () {
                 .post('/profiles')
                 .send(correctPostMessage({
                         name: 'name',
-                        code: 'oooo',
                         email: 'email@email.com',
                         password: 'seooooooooooooooooooooooooooooooooooo' +
                         'ooooooooooooooooooooooooooooooooooooooooooooooo' +
                         'oooooooooooooonha123',
                     }))
-                .expect(400)
                 .end(function (err, res) {
-                    if (err) {
-                        return done(err);
-                    }
                     should.not.exist(err);
                     res.status.should.equal(400);
                     try {
-                        var jsonResponse = JSON.parse(res.body);
+                        var jsonResponse = res.body;
                         defaultErrorResponse(jsonResponse);
                     } catch (e) {
                         return done(e);
@@ -264,17 +213,13 @@ describe('Routing tests --> ', function () {
 
         it('can retrieve an existing profile', function (done) {
             server
-                .get('/profiles/' + '00122eee')
+                .get('/profiles/' + getCreatedProfileCode())
                 .expect('Content-type',/json/)
-                .expect(200)
                 .end(function (err, res) {
-                    if (err) {
-                        return done(err);
-                    }
                     should.not.exist(err);
                     res.status.should.equal(200);
                     try {
-                        var jsonResponse = JSON.parse(res.body);
+                        var jsonResponse = res.body;
                         defaultResponse(jsonResponse);
                         jsonResponse.data.items[0].
                         should.have.property('profile');
@@ -284,8 +229,6 @@ describe('Routing tests --> ', function () {
                         profile.should.have.property('email');
                         jsonResponse.data.items[0].
                         profile.should.have.property('name');
-                        jsonResponse.data.items[0].
-                        profile.should.have.property('password');
                     } catch (e) {
                         return done(e);
                     }
@@ -296,15 +239,11 @@ describe('Routing tests --> ', function () {
         it('cannot retrieve a non-existing profile', function (done) {
             server
                 .get('/profiles/' + 'fakeCode')
-                .expect(404)
                 .end(function (err, res) {
-                    if (err) {
-                        return done(err);
-                    }
                     should.not.exist(err);
                     res.status.should.equal(404);
                     try {
-                        var jsonResponse = JSON.parse(res.body);
+                        var jsonResponse = res.body;
                         defaultErrorResponse(jsonResponse);
                     } catch (e) {
                         return done(e);
@@ -317,15 +256,11 @@ describe('Routing tests --> ', function () {
             server
                 .get('/profiles/' + 'oooooooooooooooooooooooooooooooooooo' +
                 'oooooooooooooooooooooooo')
-                .expect(400)
                 .end(function (err, res) {
-                    if (err) {
-                        return done(err);
-                    }
                     should.not.exist(err);
                     res.status.should.equal(400);
                     try {
-                        var jsonResponse = JSON.parse(res.body);
+                        var jsonResponse = res.body;
                         defaultErrorResponse(jsonResponse);
                     } catch (e) {
                         return done(e);
@@ -334,60 +269,15 @@ describe('Routing tests --> ', function () {
                 });
         });
 
-        it('a username and password are valid', function (done) {
-            server
-                .post('/login')
-                .send(correctPostMessage({
-                        email: 'email1@email.com',
-                        password: 'senha123',
-                    }))
-                .expect(200)
-                .end(function (err, res) {
-
-                    if (err) {
-                        return done(err);
-                    }
-                    should.not.exist(err);
-                    res.status.should.equal(200);
-                    done();
-                });
-        });
-
-        it('a username and password are not valid', function (done) {
-            server
-                .post('/login')
-                .send(correctPostMessage({
-                        email: 'noexist@email.com',
-                        password: 'noexistpass',
-                    }))
-                .expect(404)
-                .end(function (err, res) {
-
-                    if (err) {
-                        return done(err);
-                    }
-                    should.not.exist(err);
-                    res.status.should.equal(404);
-                    done();
-                });
-        });
-
         it('a username is valid', function (done) {
             server
-                .post('/userInfo')
-                .send(correctPostMessage({
-                        email: 'email1@email.com',
-                    }))
-                .expect(200)
+                .get('/users')
+                .set('crbemail', 'email@email.com')
                 .end(function (err, res) {
-
-                    if (err) {
-                        return done(err);
-                    }
                     should.not.exist(err);
                     res.status.should.equal(200);
                     try {
-                        var jsonResponse = JSON.parse(res.body);
+                        var jsonResponse = res.body;
                         defaultResponse(jsonResponse);
                         jsonResponse.data.items[0].
                         should.have.property('profile');
@@ -406,20 +296,13 @@ describe('Routing tests --> ', function () {
 
         it('a username is not valid', function (done) {
             server
-                .post('/userInfo')
-                .send(correctPostMessage({
-                        email: 'invalidmail@email.com',
-                    }))
-                .expect(404)
+                .get('/users')
+                .set('crbemail', 'invalidmail@email.com')
                 .end(function (err, res) {
-
-                    if (err) {
-                        return done(err);
-                    }
                     should.not.exist(err);
                     res.status.should.equal(404);
                     try {
-                        var jsonResponse = JSON.parse(res.body);
+                        var jsonResponse = res.body;
                         defaultErrorResponse(jsonResponse);
                     } catch (e) {
                         return done(e);
@@ -430,26 +313,19 @@ describe('Routing tests --> ', function () {
 
         it('a username is too big', function (done) {
             server
-                .post('/userInfo')
-                .send(correctPostMessage({
-                        email: 'oooooooooooooooooooooooooooooooooooooooooooo' +
+                .get('/users')
+                .set('crbemail', 'oooooooooooooooooooooooooooooooooooooooooooo' +
                         'oooooooooooooooooooooooooooooooooooooooooooooooo' +
                         'oooooooooooooooooooooooooooooooooooooooooooooooo' +
                         'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
                         'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
                         'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
-                        'o@email.com',
-                    }))
-                .expect(400)
+                        'o@email.com')
                 .end(function (err, res) {
-
-                    if (err) {
-                        return done(err);
-                    }
                     should.not.exist(err);
                     res.status.should.equal(400);
                     try {
-                        var jsonResponse = JSON.parse(res.body);
+                        var jsonResponse = res.body;
                         defaultErrorResponse(jsonResponse);
                     } catch (e) {
                         return done(e);
@@ -458,7 +334,49 @@ describe('Routing tests --> ', function () {
                 });
         });
 
-        it('a username is too big again', function (done) {
+        it('a username and password are valid', function (done) {
+            server
+                .post('/login')
+                .send(correctPostMessage({
+                        email: 'email@email.com',
+                        password: 'senha123',
+                    }))
+                .end(function (err, res) {
+                    should.not.exist(err);
+                    res.status.should.equal(200);
+                    try {
+                        var jsonRes = res.body;
+                        defaultResponse(jsonRes);
+                        jsonRes.data.items[0].should.have.property('email');
+                        jsonRes.data.items[0].should.have.property('code');
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('a username and password are not valid', function (done) {
+            server
+                .post('/login')
+                .send(correctPostMessage({
+                        email: 'noexist@email.com',
+                        password: 'noexistpass',
+                    }))
+                .end(function (err, res) {
+                    should.not.exist(err);
+                    res.status.should.equal(404);
+                    try {
+                        var jsonResponse = res.body;
+                        defaultErrorResponse(jsonResponse);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('a username too big', function (done) {
             server
                 .post('/login')
                 .send(correctPostMessage({
@@ -469,18 +387,13 @@ describe('Routing tests --> ', function () {
                         'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
                         'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
                         'o@email.com',
-                        password: 'dummy',
+                        password: 'noexistpass',
                     }))
-                .expect(400)
                 .end(function (err, res) {
-
-                    if (err) {
-                        return done(err);
-                    }
                     should.not.exist(err);
                     res.status.should.equal(400);
                     try {
-                        var jsonResponse = JSON.parse(res.body);
+                        var jsonResponse = res.body;
                         defaultErrorResponse(jsonResponse);
                     } catch (e) {
                         return done(e);
@@ -489,29 +402,23 @@ describe('Routing tests --> ', function () {
                 });
         });
 
-        it('a password is too big', function (done) {
+        it('a password too big', function (done) {
             server
                 .post('/login')
                 .send(correctPostMessage({
-                        email: 'email@eee.com',
-                        password: 'ooooooooooooooooooooooooooooooooooooooooo' +
+                        email: 'email@email.com',
+                        password: 'oooooooooooooooooooooooooooooooooooooooooooo' +
                         'oooooooooooooooooooooooooooooooooooooooooooooooo' +
                         'oooooooooooooooooooooooooooooooooooooooooooooooo' +
                         'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
                         'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
-                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
-                        'ooooo@email.com',
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo',
                     }))
-                .expect(400)
                 .end(function (err, res) {
-
-                    if (err) {
-                        return done(err);
-                    }
                     should.not.exist(err);
                     res.status.should.equal(400);
                     try {
-                        var jsonResponse = JSON.parse(res.body);
+                        var jsonResponse = res.body;
                         defaultErrorResponse(jsonResponse);
                     } catch (e) {
                         return done(e);
@@ -524,16 +431,11 @@ describe('Routing tests --> ', function () {
             server
                 .post('/login')
                 .send(correctPostMessage({}))
-                .expect(400)
                 .end(function (err, res) {
-
-                    if (err) {
-                        return done(err);
-                    }
                     should.not.exist(err);
                     res.status.should.equal(400);
                     try {
-                        var jsonResponse = JSON.parse(res.body);
+                        var jsonResponse = res.body;
                         defaultErrorResponse(jsonResponse);
                     } catch (e) {
                         return done(e);
@@ -542,4 +444,1184 @@ describe('Routing tests --> ', function () {
                 });
         });
     });
+
+    describe('Project Routes: Create and get: ', function () {
+        it('can create a new project', function (done) {
+            server
+                .post('/projects')
+                .set('crbemail', 'email@email.com')
+                .send(correctPostMessage({
+                        name: 'Projeto Teste',
+                        description: 'Descricao do projeto teste',
+                    }))
+                .end(function (err, res) {
+                    should.not.exist(err);
+                    res.status.should.equal(201);
+                    try {
+                        var jsonRes = res.body;
+                        defaultResponse(jsonRes);
+                        jsonRes.data.items[0].should.have.property('project');
+                        jsonRes.data.items[0].project
+                        .should.have.property('code');
+                        jsonRes.data.items[0].project
+                        .should.have.property('safeName');
+                        jsonRes.data.items[0].project
+                        .should.have.property('name');
+                        jsonRes.data.items[0].project
+                        .should.have.property('description');
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('can create a project with the same name as before',
+        function (done) {
+            server
+                .post('/projects')
+                .set('crbemail', 'email@email.com')
+                .send(correctPostMessage({
+                        name: 'Projeto Teste',
+                        description: 'Descricao do projeto teste',
+                    }))
+                .end(function (err, res) {
+                    should.not.exist(err);
+                    res.status.should.equal(201);
+                    try {
+                        var jsonRes = res.body;
+                        defaultResponse(jsonRes);
+                        jsonRes.data.items[0].should.have.property('project');
+                        jsonRes.data.items[0].project
+                        .should.have.property('code');
+                        jsonRes.data.items[0].project
+                        .should.have.property('safeName');
+                        jsonRes.data.items[0].project
+                        .should.have.property('name');
+                        jsonRes.data.items[0].project
+                        .should.have.property('description');
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot create a project with name too big', function (done) {
+            server
+                .post('/projects')
+                .set('crbemail', 'email@email.com')
+                .send(correctPostMessage({
+                        name: 'oooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo',
+                        description: 'Descricao do projeto teste',
+                    }))
+                .end(function (err, res) {
+                    should.not.exist(err);
+                    res.status.should.equal(400);
+                    try {
+                        var jsonResponse = res.body;
+                        defaultErrorResponse(jsonResponse);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot create a project with crbemail too big', function (done) {
+            server
+                .post('/projects')
+                .set('crbemail', 'oooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooo@email.com')
+                .send(correctPostMessage({
+                        name: 'Projeto teste',
+                        description: 'Descricao do projeto teste',
+                    }))
+                .end(function (err, res) {
+                    should.not.exist(err);
+                    res.status.should.equal(400);
+                    try {
+                        var jsonResponse = res.body;
+                        defaultErrorResponse(jsonResponse);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('Can create a project with an enormous description',
+        function (done) {
+            server
+                .post('/projects')
+                .set('crbemail', 'email@email.com')
+                .send(correctPostMessage({
+                        name: 'Projeto Teste',
+                        description: 'ooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo',
+                    }))
+                .end(function (err, res) {
+                    should.not.exist(err);
+                    res.status.should.equal(201);
+                    try {
+                        var jsonRes = res.body;
+                        defaultResponse(jsonRes);
+                        jsonRes.data.items[0].should.have.property('project');
+                        jsonRes.data.items[0].project
+                        .should.have.property('code');
+                        jsonRes.data.items[0].project
+                        .should.have.property('safeName');
+                        jsonRes.data.items[0].project
+                        .should.have.property('name');
+                        jsonRes.data.items[0].project
+                        .should.have.property('description');
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot create a project without name', function (done) {
+            server
+                .post('/projects')
+                .set('crbemail', 'email@email.com')
+                .send(correctPostMessage({
+                        description: 'Descricao do projeto teste',
+                    }))
+                .end(function (err, res) {
+                    should.not.exist(err);
+                    res.status.should.equal(400);
+                    try {
+                        var jsonResponse = res.body;
+                        defaultErrorResponse(jsonResponse);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot create a project without description', function (done) {
+            server
+                .post('/projects')
+                .set('crbemail', 'email@email.com')
+                .send(correctPostMessage({
+                        name: 'Projeto teste',
+                    }))
+                .end(function (err, res) {
+                    should.not.exist(err);
+                    res.status.should.equal(400);
+                    try {
+                        var jsonResponse = res.body;
+                        defaultErrorResponse(jsonResponse);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot create a project without crbemail', function (done) {
+            server
+                .post('/projects')
+                .send(correctPostMessage({
+                        name: 'Projeto teste',
+                        description: 'Descricao do projeto teste',
+                    }))
+                .end(function (err, res) {
+                    should.not.exist(err);
+                    res.status.should.equal(400);
+                    try {
+                        var jsonResponse = res.body;
+                        defaultErrorResponse(jsonResponse);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot create a project with fake crbemail', function (done) {
+            server
+                .post('/projects')
+                .set('crbemail', 'fakeemail@email.com')
+                .send(correctPostMessage({
+                        name: 'Projeto teste',
+                        description: 'Descricao do projeto teste',
+                    }))
+                .end(function (err, res) {
+                    should.not.exist(err);
+                    res.status.should.equal(404);
+                    try {
+                        var jsonResponse = res.body;
+                        defaultErrorResponse(jsonResponse);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('can get a project from a valid code',
+        function (done) {
+            server
+                .get('/projects/code2222')
+                .set('crbemail', 'john.connor@resistance.com')
+                .end(function (err, res) {
+                    res.status.should.equal(200);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultResponse(jsonRes);
+                        jsonRes.data.items[0].should.have.property('project');
+                        jsonRes.data.items[0].project
+                        .should.have.property('code');
+                        jsonRes.data.items[0].project
+                        .should.have.property('safeName');
+                        jsonRes.data.items[0].project
+                        .should.have.property('name');
+                        jsonRes.data.items[0].project
+                        .should.have.property('description');
+                        jsonRes.data.items[0].project
+                        .should.have.property('access');
+                        jsonRes.data.items[0].project
+                        .should.have.property('owner');
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('can get a project with write access',
+        function (done) {
+            server
+                .get('/projects/code555')
+                .set('crbemail', 'john.connor@resistance.com')
+                .end(function (err, res) {
+                    res.status.should.equal(200);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultResponse(jsonRes);
+                        jsonRes.data.items[0].should.have.property('project');
+                        jsonRes.data.items[0].project
+                        .should.have.property('code');
+                        jsonRes.data.items[0].project
+                        .should.have.property('safeName');
+                        jsonRes.data.items[0].project
+                        .should.have.property('name');
+                        jsonRes.data.items[0].project
+                        .should.have.property('description');
+                        jsonRes.data.items[0].project
+                        .should.have.property('access');
+                        jsonRes.data.items[0].project
+                        .should.have.property('owner');
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('can get a project with read access',
+        function (done) {
+            server
+                .get('/projects/code666')
+                .set('crbemail', 'john.connor@resistance.com')
+                .end(function (err, res) {
+                    res.status.should.equal(200);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultResponse(jsonRes);
+                        jsonRes.data.items[0].should.have.property('project');
+                        jsonRes.data.items[0].project
+                        .should.have.property('code');
+                        jsonRes.data.items[0].project
+                        .should.have.property('safeName');
+                        jsonRes.data.items[0].project
+                        .should.have.property('name');
+                        jsonRes.data.items[0].project
+                        .should.have.property('description');
+                        jsonRes.data.items[0].project
+                        .should.have.property('access');
+                        jsonRes.data.items[0].project
+                        .should.have.property('owner');
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot get project without permission',
+        function (done) {
+            server
+                .get('/projects/code888')
+                .set('crbemail', 'john.connor@resistance.com')
+                .end(function (err, res) {
+                    res.status.should.equal(403);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot get project that does not exist',
+        function (done) {
+            server
+                .get('/projects/fakeProjectCode')
+                .set('crbemail', 'john.connor@resistance.com')
+                .end(function (err, res) {
+                    res.status.should.equal(404);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot get project that does not exist',
+        function (done) {
+            server
+                .get('/projects/code666')
+                .set('crbemail', 'palhaco.pimpao@alegria.com')
+                .end(function (err, res) {
+                    res.status.should.equal(404);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot get project without user',
+        function (done) {
+            server
+                .get('/projects/code666')
+                .end(function (err, res) {
+                    res.status.should.equal(400);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot get project with user too big',
+        function (done) {
+            server
+                .get('/projects/code666')
+                .set('crbemail', 'john.connor@oooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo')
+                .end(function (err, res) {
+                    res.status.should.equal(400);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot get project with code too big',
+        function (done) {
+            server
+                .get('/projects/oooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo')
+                .set('crbemail', 'john.connor@resistance.com')
+                .end(function (err, res) {
+                    res.status.should.equal(400);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+    });
+    
+    describe('Project Routes: list projects', function () {
+        it('can list projects from a existing user with shared projects',
+        function (done) {
+            server
+                .get('/projects')
+                .set('crbemail', 'john.connor@resistance.com')
+                .end(function (err, res) {
+                    res.status.should.equal(200);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultResponse(jsonRes);
+                        jsonRes.data.items[0].should.have.property('project');
+                        jsonRes.data.items[0].project
+                        .should.have.property('code');
+                        jsonRes.data.items[0].project
+                        .should.have.property('safeName');
+                        jsonRes.data.items[0].project
+                        .should.have.property('name');
+                        jsonRes.data.items[0].project
+                        .should.have.property('description');
+                        jsonRes.data.items[0].project
+                        .should.have.property('access');
+                        jsonRes.data.items[0].project
+                        .should.have.property('owner');
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('can list projects from a existing user without shared projects',
+        function (done) {
+            server
+                .get('/projects')
+                .set('crbemail', 'sarah.connor@resistance.com')
+                .end(function (err, res) {
+                    res.status.should.equal(200);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultResponse(jsonRes);
+                        jsonRes.data.items[0].should.have.property('project');
+                        jsonRes.data.items[0].project
+                        .should.have.property('code');
+                        jsonRes.data.items[0].project
+                        .should.have.property('safeName');
+                        jsonRes.data.items[0].project
+                        .should.have.property('name');
+                        jsonRes.data.items[0].project
+                        .should.have.property('description');
+                        jsonRes.data.items[0].project
+                        .should.have.property('access');
+                        jsonRes.data.items[0].project
+                        .should.have.property('owner');
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot list projects from a invalid user',
+        function (done) {
+            server
+                .get('/projects')
+                .set('crbemail', 'palhaco.pimpao@alegria.com')
+                .end(function (err, res) {
+                    res.status.should.equal(404);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot list projects from a email too big',
+        function (done) {
+            server
+                .get('/projects')
+                .set('crbemail', 'ooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo')
+                .end(function (err, res) {
+                    res.status.should.equal(400);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot list projects without email',
+        function (done) {
+            server
+                .get('/projects')
+                .end(function (err, res) {
+                    res.status.should.equal(400);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+    });
+
+    describe('Project Routes: update: ', function () {
+        it('can update an existing project',
+        function (done) {
+            var name = 'I will be back';
+            var description = 'Wait in the line, I will be back soon';
+            server
+                .put('/projects/code7777')
+                .set('crbemail', 'terminator@skynet.com')
+                .send(correctPostMessage({
+                        name: name,
+                        description: description,
+                    }))
+                .end(function (err, res) {
+                    res.status.should.equal(201);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultResponse(jsonRes);
+                        jsonRes.data.items[0].should.have.property('project');
+                        jsonRes.data.items[0].project
+                        .should.have.property('code');
+                        jsonRes.data.items[0].project
+                        .should.have.property('safeName');
+                        jsonRes.data.items[0].project
+                        .should.have.property('name');
+                        jsonRes.data.items[0].project
+                        .should.have.property('description');
+                        jsonRes.data.items[0].project.name
+                        .should.to.equal(name);
+                        jsonRes.data.items[0].project.description
+                        .should.to.equal(description);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('can update an existing project with write access',
+        function (done) {
+            var name = 'Judgment Day';
+            var description = 'I can update Sarah Connors diary';
+            server
+                .put('/projects/code666')
+                .set('crbemail', 'john.connor@resistance.com')
+                .send(correctPostMessage({
+                        name: name,
+                        description: description,
+                    }))
+                .end(function (err, res) {
+                    res.status.should.equal(201);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultResponse(jsonRes);
+                        jsonRes.data.items[0].should.have.property('project');
+                        jsonRes.data.items[0].project
+                        .should.have.property('code');
+                        jsonRes.data.items[0].project
+                        .should.have.property('safeName');
+                        jsonRes.data.items[0].project
+                        .should.have.property('name');
+                        jsonRes.data.items[0].project
+                        .should.have.property('description');
+                        jsonRes.data.items[0].project.name
+                        .should.to.equal(name);
+                        jsonRes.data.items[0].project.description
+                        .should.to.equal(description);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot update an existing project with read access',
+        function (done) {
+            var name = 'Hasta luego, baby';
+            var description = 'I cannot update terminators project, only read';
+            server
+                .put('/projects/code888')
+                .set('crbemail', 'sarah.connor@resistance.com')
+                .send(correctPostMessage({
+                        name: name,
+                        description: description,
+                    }))
+                .end(function (err, res) {
+                    res.status.should.equal(403);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot update an existing project without access',
+        function (done) {
+            var name = 'How to kill robots';
+            var description = 'I cannot update my sons diary in the future';
+            server
+                .put('/projects/code333')
+                .set('crbemail', 'sarah.connor@resistance.com')
+                .send(correctPostMessage({
+                        name: name,
+                        description: description,
+                    }))
+                .end(function (err, res) {
+                    res.status.should.equal(403);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot update a non existing project',
+        function (done) {
+            var name = 'Rebuilding the world after SkyNet';
+            var description = 'I cannot update because the war is not over';
+            server
+                .put('/projects/codeEndWar')
+                .set('crbemail', 'john.connor@resistance.com')
+                .send(correctPostMessage({
+                        name: name,
+                        description: description,
+                    }))
+                .end(function (err, res) {
+                    res.status.should.equal(404);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot update an existing project with an invalid user',
+        function (done) {
+            var name = 'How to make a pie';
+            var description = 'The complete guide';
+            server
+                .put('/projects/code666')
+                .set('crbemail', 'palhaco.pimpao@alegria.com')
+                .send(correctPostMessage({
+                        name: name,
+                        description: description,
+                    }))
+                .end(function (err, res) {
+                    res.status.should.equal(404);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot update an existing project without a user',
+        function (done) {
+            var name = 'How to make a pie';
+            var description = 'The complete guide';
+            server
+                .put('/projects/code333')
+                .send(correctPostMessage({
+                        name: name,
+                        description: description,
+                    }))
+                .end(function (err, res) {
+                    res.status.should.equal(400);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot update an existing project without name',
+        function (done) {
+            var description = 'The complete guide';
+            server
+                .put('/projects/code333')
+                .set('crbemail', 'john.connor@resistance.com')
+                .send(correctPostMessage({
+                        description: description,
+                    }))
+                .end(function (err, res) {
+                    res.status.should.equal(400);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot update an existing project without description',
+        function (done) {
+            var name = 'How to save the world';
+            server
+                .put('/projects/code333')
+                .set('crbemail', 'john.connor@resistance.com')
+                .send(correctPostMessage({
+                        name: name,
+                    }))
+                .end(function (err, res) {
+                    res.status.should.equal(400);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot update an existing project with name too big',
+        function (done) {
+            var name = 'oooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo';
+            var description = 'Description';
+            server
+                .put('/projects/code333')
+                .set('crbemail', 'john.connor@resistance.com')
+                .send(correctPostMessage({
+                        name: name,
+                        description: description,
+                    }))
+                .end(function (err, res) {
+                    res.status.should.equal(400);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot update an existing project with code too big',
+        function (done) {
+            var name = 'Project Name';
+            var description = 'Description';
+            server
+                .put('/projects/oooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo')
+                .set('crbemail', 'john.connor@resistance.com')
+                .send(correctPostMessage({
+                        name: name,
+                        description: description,
+                    }))
+                .end(function (err, res) {
+                    res.status.should.equal(400);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot update an existing project with email too big',
+        function (done) {
+            var name = 'Project Name';
+            var description = 'Description';
+            server
+                .put('/projects/code333')
+                .set('crbemail', 'john.connor@oooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo')
+                .send(correctPostMessage({
+                        name: name,
+                        description: description,
+                    }))
+                .end(function (err, res) {
+                    res.status.should.equal(400);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('can update an existing project with access and big description',
+        function (done) {
+            var name = 'I will be back';
+            var description = 'oooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo';
+            server
+                .put('/projects/code7777')
+                .set('crbemail', 'terminator@skynet.com')
+                .send(correctPostMessage({
+                        name: name,
+                        description: description,
+                    }))
+                .end(function (err, res) {
+                    res.status.should.equal(201);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultResponse(jsonRes);
+                        jsonRes.data.items[0].should.have.property('project');
+                        jsonRes.data.items[0].project
+                        .should.have.property('code');
+                        jsonRes.data.items[0].project
+                        .should.have.property('safeName');
+                        jsonRes.data.items[0].project
+                        .should.have.property('name');
+                        jsonRes.data.items[0].project
+                        .should.have.property('description');
+                        jsonRes.data.items[0].project.name
+                        .should.to.equal(name);
+                        jsonRes.data.items[0].project.description
+                        .should.to.equal(description);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+    });
+
+    describe('Project Routes: delete: ', function () {
+        it('can delele an existing project with owner access',
+        function (done) {
+            server
+                .delete('/projects/code444')
+                .set('crbemail', 'john.connor@resistance.com')
+                .end(function (err, res) {
+                    res.status.should.equal(200);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultResponse(jsonRes);
+                        jsonRes.data.items[0].should.have.property('project');
+                        jsonRes.data.items[0].project
+                        .should.have.property('code');
+                        jsonRes.data.items[0].project
+                        .should.have.property('safeName');
+                        jsonRes.data.items[0].project
+                        .should.have.property('name');
+                        jsonRes.data.items[0].project
+                        .should.have.property('description');
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot delele an existing project with write access but not owner',
+        function (done) {
+            server
+                .delete('/projects/code666')
+                .set('crbemail', 'john.connor@resistance.com')
+                .end(function (err, res) {
+                    res.status.should.equal(403);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot delele an existing project with read access',
+        function (done) {
+            server
+                .delete('/projects/code555')
+                .set('crbemail', 'john.connor@resistance.com')
+                .end(function (err, res) {
+                    res.status.should.equal(403);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot delele an existing project without access',
+        function (done) {
+            server
+                .delete('/projects/code7777')
+                .set('crbemail', 'john.connor@resistance.com')
+                .end(function (err, res) {
+                    res.status.should.equal(403);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot delele a non-existing project',
+        function (done) {
+            server
+                .delete('/projects/codeFake')
+                .set('crbemail', 'sarah.connor@resistance.com')
+                .end(function (err, res) {
+                    res.status.should.equal(404);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot delele an existing project without email',
+        function (done) {
+            server
+                .delete('/projects/code555')
+                .end(function (err, res) {
+                    res.status.should.equal(400);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot delele an existing project with code too big',
+        function (done) {
+            server
+                .delete('/projects/oooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo')
+                .set('crbemail', 'sarah.connor@resistance.com')
+                .end(function (err, res) {
+                    res.status.should.equal(400);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+        it('cannot delele an existing project with email too big',
+        function (done) {
+            server
+                .delete('/projects/code555')
+                .set('crbemail', 'sarah.connor@ooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'oooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo' +
+                        'ooooooooooooooooooooooooooooooooooooooooooooooooo')
+                .end(function (err, res) {
+                    res.status.should.equal(400);
+                    should.not.exist(err);
+                    try {
+                        var jsonRes = res.body;
+                        defaultErrorResponse(jsonRes);
+                    } catch (e) {
+                        return done(e);
+                    }
+                    done();
+                });
+        });
+
+    });
+
 });
