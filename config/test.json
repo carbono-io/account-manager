@@ -1,6 +1,13 @@
 {
-    "host": "127.0.0.1",
-    "port": 7888,
+    "etcd": {
+        "host": "carbonohost",
+        "port": 7888,
+        "key" : "accm",
+        "alias" : "Imperial - Account Manager",
+        "namespace" : "/account-manager/"
+    },
+    "host": "carbonohost",
+    "port" : 7888,
     "dbName": "carbono",
     "dbUsername": "root",
     "dbPassword": "",
