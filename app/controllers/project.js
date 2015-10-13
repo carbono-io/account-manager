@@ -37,7 +37,7 @@ module.exports = function (app) {
                 var missingProperties =
                     reqHelper.checkRequiredData(
                         userData, ['owner', 'name', 'description']);
-    
+
                 if (missingProperties.length) {
                     var errMessage = '';
                     missingProperties.forEach(function (prop) {
@@ -58,6 +58,8 @@ module.exports = function (app) {
                                                 safeName: result.safeName,
                                                 name: result.name,
                                                 description: result.description,
+                                                createdAt: result.createdAt,
+                                                modifiedAt: result.modifiedAt,
                                             },
                                         },
                                     ],
@@ -152,6 +154,8 @@ module.exports = function (app) {
                                         description: result.description,
                                         access: result.access,
                                         owner: result.owner,
+                                        createdAt: result.createdAt,
+                                        modifiedAt: result.modifiedAt,
                                     },
                                 },
                             ],
