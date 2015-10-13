@@ -9,7 +9,7 @@
     "dbPath": "",
     "etcd": {
         "host": "127.0.0.1",
-        "port": 7689,
+        "port": 7888,
         "key" : "accm",
         "alias" : "Carbono Account Manager",
         "namespace" : "/account-manager/"
