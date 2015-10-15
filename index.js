@@ -13,10 +13,9 @@ app.set('models', require('./app/models'));
 app.use(bodyParser.json());
 app.use('/account-manager', baseApp);
 baseApp.use(function (req, res, next) {
-    res.header('Access-Control-Allow-Origin', 'carbono.io');
-    res.header('Access-Control-Allow-Origin', 'http://localhost:4000');
+    res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Headers',
-    'Origin, X-Requested-With, Content-Type, Accept, crbemail');
+    'Origin, X-Requested-With, Content-Type, Accept, crbemail, Authorization');
     next();
 });
 
