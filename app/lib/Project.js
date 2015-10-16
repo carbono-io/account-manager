@@ -282,69 +282,74 @@ var getProfileIdFromEmail = function (email) {
 var queryProjects = function (projectAccess, response, profile) {
     var deffered = q.defer();
     var index = 0;
-    projectAccess.forEach(function (access) {
-        var projectId = access.project_id;
-        var access_level = access.access_type;
-        app.get('models').AccessLevel
-        .findOne({
-            where: {id: access_level},
-        })
-        .then(function (accessProj) {
-            if (accessProj !== null) {
-                var accessName = accessProj.name;
-                app.get('models').Project
-                .findOne({
-                    where: {id: projectId},
-                })
-                .then(function (resProject) {
-                    if (resProject !== null) {
-                        var owner = false;
-                        if (profile === resProject.owner) {
-                            owner = true;
+    if (projectAccess.length > 0) {
+        projectAccess.forEach(function (access) {
+            var projectId = access.project_id;
+            var access_level = access.access_type;
+            app.get('models').AccessLevel
+            .findOne({
+                where: {id: access_level},
+            })
+            .then(function (accessProj) {
+                if (accessProj !== null) {
+                    var accessName = accessProj.name;
+                    app.get('models').Project
+                    .findOne({
+                        where: {id: projectId},
+                    })
+                    .then(function (resProject) {
+                        if (resProject !== null) {
+                            var owner = false;
+                            if (profile === resProject.owner) {
+                                owner = true;
+                            }
+                            var retProject = {
+                                project: {
+                                    safeName: resProject.safeName,
+                                    code: resProject.code,
+                                    name: resProject.name,
+                                    access: accessName,
+                                    owner: owner,
+                                    description:
+                                    resProject.description,
+                                    createdAt:
+                                    resProject.created_at,
+                                    modifiedAt:
+                                    resProject.updated_at,
+                                },
+                            };
+                            response.push(retProject);
                         }
-                        var retProject = {
-                            project: {
-                                safeName: resProject.safeName,
-                                code: resProject.code,
-                                name: resProject.name,
-                                access: accessName,
-                                owner: owner,
-                                description:
-                                resProject.description,
-                                createdAt:
-                                resProject.created_at,
-                                modifiedAt:
-                                resProject.updated_at,
-                            },
+                        index++;
+                        if (index === projectAccess.length) {
+                            deffered.resolve(response);
+                        }
+                    })
+                    .catch(function (error) {
+                        var returnMessage = {
+                            success: false,
+                            code: 500,
+                            error: error,
+                            table: 'project_access',
                         };
-                        response.push(retProject);
-                    }
-                    index++;
-                    if (index === projectAccess.length) {
-                        deffered.resolve(response);
-                    }
-                })
-                .catch(function (error) {
-                    var returnMessage = {
-                        success: false,
-                        code: 500,
-                        error: error,
-                        table: 'project_access',
-                    };
-                    deffered.reject(returnMessage);
-                });
-            }
-        })
-        .catch(function (error) {
-            var returnMessage = {
-                success: false,
-                code: 500,
-                error: error,
-                table: 'project',
-            };
-            deffered.reject(returnMessage);
+                        deffered.reject(returnMessage);
+                    });
+                }
+            })
+            .catch(function (error) {
+                var returnMessage = {
+                    success: false,
+                    code: 500,
+                    error: error,
+                    table: 'project',
+                };
+                deffered.reject(returnMessage);
+            });
         });
-    });
+    } else {
+        deffered.resolve([]);
+    }
+
     return deffered.promise;
 };
 
@@ -1237,6 +1242,5 @@ Project.prototype.getProjectAccess = function (email, code) {
         });
     return deffered.promise;
 };
-
 
 module.exports = Project;
