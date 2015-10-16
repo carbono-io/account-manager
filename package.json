@@ -16,7 +16,7 @@
     "bcrypt-nodejs": "0.0.3",
     "body-parser": "^1.13.3",
     "carbono-json-messages": "0.0.2",
-    "carbono-service-manager": "0.0.7",
+    "carbono-service-manager": "0.0.9",
     "colors": "^1.1.2",
     "config": "^1.16.0",
     "consign": "^0.1.2",
