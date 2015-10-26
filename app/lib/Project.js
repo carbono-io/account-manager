@@ -10,12 +10,12 @@ var app = null;
  * @function
  *
  * @param {string} text - The project name
- * 
+ *
  * @returns {string} text - The slugified project name
- * 
+ *
  */
 function slugify(text) {
-  return text.toString().toLowerCase()
+    return text.toString().toLowerCase()
     .replace(/\s+/g, '-')           // Replace spaces with -
     .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
     .replace(/\-\-+/g, '-')         // Replace multiple - with single -
@@ -30,11 +30,11 @@ function slugify(text) {
  *
  * @param {number} low - The low number
  * @param {number} high - The high number
- * 
+ *
  * @returns {number} random - The random number
- * 
+ *
  */
-function random (low, high) {
+function random(low, high) {
     return Math.floor(Math.random() * (high - low + 1) + low);
 }
 
@@ -51,12 +51,12 @@ function random (low, high) {
  *
  * @returns {boolean} ret.success - If found or not a code
  * @returns {boolean} ret.safeName - The code
- * 
+ *
  */
-function findUnusedSafeName (cont, name, owner) {
+function findUnusedSafeName(cont, name, owner) {
     var deferred = q.defer();
     name = slugify(name);
-    
+
     if (cont <= 1) {
         name = name.substring(0, 80);
     } else {
@@ -106,12 +106,12 @@ function findUnusedSafeName (cont, name, owner) {
  *
  * @returns {string} ret.safeName - A unused code for the profile
  */
-function generateSafeName (body, name, owner) {
+function generateSafeName(body, name, owner) {
     var deferred = q.defer();
     var cont = 0;
     function loop() {
         cont++;
-        body(cont, name, owner).then(function(bool) {
+        body(cont, name, owner).then(function (bool) {
             if (bool.success) {
                 // If found
                 return deferred.resolve(bool);
@@ -135,9 +135,9 @@ function generateSafeName (body, name, owner) {
  *
  * @returns {boolean} ret.success - If found or not a code
  * @returns {boolean} ret.code - The code
- * 
+ *
  */
-function findUnusedCode () {
+function findUnusedCode() {
     var deferred = q.defer();
     var name =  uuid.v4();
     var Project = app.get('models').Project;
@@ -182,12 +182,12 @@ function findUnusedCode () {
  *
  * @returns {string} ret.code - A unused code for the profile
  */
-function generateCode (body) {
+function generateCode(body) {
     var deferred = q.defer();
 
     function loop() {
 
-        body().then(function(bool) {
+        body().then(function (bool) {
             if (bool.success) {
                 // If found
                 return deferred.resolve(bool);
@@ -201,12 +201,11 @@ function generateCode (body) {
     return deferred.promise;
 }
 
-
 /**
  * Gets the profile id based on a user email
  *
  * @function
- * 
+ *
  * @returns {number} ret.profileId - The profile ID
  * @returns {string} ret.profileCode - The profile code
  * @returns {string} ret.code - The the code of the error
@@ -217,7 +216,7 @@ var getProfileIdFromEmail = function (email) {
     var deffered = q.defer();
     app.get('models').User
     .findOne({
-        where: {email: email}
+        where: {email: email},
     })
     .then(function (user) {
         if (user !== null) {
@@ -280,68 +279,77 @@ var getProfileIdFromEmail = function (email) {
  * @returns {string} returnMessage.table - Table in which the error
  * occurred
  */
-var queryProjects = function(projectAccess, response, profile) {
+var queryProjects = function (projectAccess, response, profile) {
     var deffered = q.defer();
     var index = 0;
-    projectAccess.forEach(function (access) {
-        var projectId = access.project_id;
-        var access_level = access.access_type;
-        app.get('models').AccessLevel
-        .findOne({
-            where: {id: access_level},
-        })
-        .then(function (accessProj) {
-            if (accessProj !== null) {
-                var accessName = accessProj.name;
-                app.get('models').Project
-                .findOne({
-                    where: {id: projectId},
-                })
-                .then(function (resProject) {
-                    if (resProject !== null) {
-                        var owner = false;
-                        if (profile === resProject.owner) {
-                            owner = true;
-                        }
-                        var retProject = {
-                            project: {
-                                safeName: resProject.safeName,
-                                code: resProject.code,
-                                name: resProject.name,
-                                access: accessName,
-                                owner: owner,
-                                description:
-                                resProject.description,
+    if (projectAccess.length > 0) {
+        projectAccess.forEach(function (access) {
+            var projectId = access.project_id;
+            var access_level = access.access_type;
+            app.get('models').AccessLevel
+            .findOne({
+                where: {id: access_level},
+            })
+            .then(function (accessProj) {
+                if (accessProj !== null) {
+                    var accessName = accessProj.name;
+                    app.get('models').Project
+                    .findOne({
+                        where: {id: projectId},
+                    })
+                    .then(function (resProject) {
+                        if (resProject !== null) {
+                            var owner = false;
+                            if (profile === resProject.owner) {
+                                owner = true;
                             }
+                            var retProject = {
+                                project: {
+                                    safeName: resProject.safeName,
+                                    code: resProject.code,
+                                    name: resProject.name,
+                                    access: accessName,
+                                    owner: owner,
+                                    description:
+                                    resProject.description,
+                                    createdAt:
+                                    resProject.created_at,
+                                    modifiedAt:
+                                    resProject.updated_at,
+                                },
+                            };
+                            response.push(retProject);
+                        }
+                        index++;
+                        if (index === projectAccess.length) {
+                            deffered.resolve(response);
+                        }
+                    })
+                    .catch(function (error) {
+                        var returnMessage = {
+                            success: false,
+                            code: 500,
+                            error: error,
+                            table: 'project_access',
                         };
-                        response.push(retProject);
-                    }
-                    index++;
-                    if (index === projectAccess.length) {
-                        deffered.resolve(response);
-                    }
-                })
-                .catch(function (error) {
-                    var returnMessage = {
-                        success: false,
-                        code: 500,
-                        error: error,
-                        table: 'project_access',
-                    };
-                    deffered.reject(returnMessage);
-                });
-            }
-        })
-        .catch(function (error) {
-            var returnMessage = {
-                success: false,
-                code: 500,
-                error: error,
-                table: 'project',
-            };
-            deffered.reject(returnMessage);
+                        deffered.reject(returnMessage);
+                    });
+                }
+            })
+            .catch(function (error) {
+                var returnMessage = {
+                    success: false,
+                    code: 500,
+                    error: error,
+                    table: 'project',
+                };
+                deffered.reject(returnMessage);
+            });
         });
-    });
+    } else {
+        deffered.resolve([]);
+    }
+
     return deffered.promise;
 };
 
@@ -438,6 +446,8 @@ Project.prototype.newProject = function (data) {
                                             name: data.name,
                                             description:
                                             data.description,
+                                            createdAt: project.created_at,
+                                            modifiedAt: project.updated_at,
                                         };
                                         deffered
                                         .resolve(returnMessage);
@@ -445,7 +455,7 @@ Project.prototype.newProject = function (data) {
                                         returnMessage = {
                                             success: false,
                                             code: 400,
-                                            error:'Could not set' +
+                                            error: 'Could not set' +
                                             'project access',
                                             table: 'project_access',
                                         };
@@ -511,6 +521,10 @@ Project.prototype.newProject = function (data) {
                                                         name: data.name,
                                                         description:
                                                         data.description,
+                                                        createdAt:
+                                                        project.created_at,
+                                                        modifiedAt:
+                                                        project.updated_at,
                                                     };
                                                     deffered
                                                     .resolve(returnMessage);
@@ -580,7 +594,6 @@ Project.prototype.newProject = function (data) {
                     };
                     deffered.reject(returnMessage);
                 });
-                
             },
             function (err) {
                 deffered.reject(err);
@@ -787,6 +800,10 @@ Project.prototype.getProject = function (data) {
                             access: res.projectAccess,
                             owner: owner,
                             name: project.name,
+                            createdAt:
+                            project.created_at,
+                            modifiedAt:
+                            project.updated_at,
                         };
                         deffered.resolve(returnMessage);
                     } else {
@@ -1041,7 +1058,7 @@ Project.prototype.deleteProject = function (data) {
                                             code: data.code,
                                             safeName: data.safeName,
                                             name: project.name,
-                                            description: 
+                                            description:
                                             project.description,
                                         };
                                         deffered.resolve(returnMessage);
@@ -1071,7 +1088,7 @@ Project.prototype.deleteProject = function (data) {
                                     table: 'project',
                                 });
                             });
-                            
+
                         } else {
                             deffered.reject({
                                 success: false,
@@ -1116,10 +1133,10 @@ Project.prototype.deleteProject = function (data) {
  * Gets the access to a project based on the user email
  *
  * @function
- * 
+ *
  * @param {string} email - The email of the logged user
  * @param {string} code - The code identifier of the project
- * 
+ *
  * @returns {number} ret.projectAccess - The access of the current user
  * @returns {string} ret.code - The the code of the error
  * @returns {string} ret.error - The error message
@@ -1225,6 +1242,5 @@ Project.prototype.getProjectAccess = function (email, code) {
         });
     return deffered.promise;
 };
-
 
 module.exports = Project;

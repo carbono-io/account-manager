@@ -37,7 +37,7 @@ module.exports = function (app) {
                 var missingProperties =
                     reqHelper.checkRequiredData(
                         userData, ['owner', 'name', 'description']);
-    
+
                 if (missingProperties.length) {
                     var errMessage = '';
                     missingProperties.forEach(function (prop) {
@@ -58,6 +58,8 @@ module.exports = function (app) {
                                                 safeName: result.safeName,
                                                 name: result.name,
                                                 description: result.description,
+                                                createdAt: result.createdAt,
+                                                modifiedAt: result.modifiedAt,
                                             },
                                         },
                                     ],
@@ -80,9 +82,9 @@ module.exports = function (app) {
             reqHelper.createResponse(res, 400,
                 'Malformed request - Header attribute cbrEmail not found!');
         }
-        
+
     };
-    
+
     /**
      * Returns all projects from a user
      *
@@ -134,7 +136,7 @@ module.exports = function (app) {
      */
     this.get = function (req, res) {
         if (req.params && req.params.code && req.headers.crbemail) {
-            var userData = { 
+            var userData = {
                 code: req.params.code,
                 email: req.headers.crbemail,
             };
@@ -152,6 +154,8 @@ module.exports = function (app) {
                                         description: result.description,
                                         access: result.access,
                                         owner: result.owner,
+                                        createdAt: result.createdAt,
+                                        modifiedAt: result.modifiedAt,
                                     },
                                 },
                             ],
@@ -191,7 +195,7 @@ module.exports = function (app) {
         if (req.params && req.params.code && req.headers.crbemail &&
             reqHelper.checkMessageStructure(req)) {
             var userData = req.body.data.items[0];
-            
+
             userData.code = req.params.code;
             userData.email = req.headers.crbemail;
             var missingProperties =
@@ -254,7 +258,7 @@ module.exports = function (app) {
     this.delete = function (req, res) {
         if (req.params && req.params.code && req.headers.crbemail) {
             var userData =
-            { 
+            {
                 code: req.params.code,
                 email: req.headers.crbemail,
             };
